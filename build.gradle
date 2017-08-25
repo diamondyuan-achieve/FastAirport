@@ -50,6 +50,7 @@ dependencies {
   compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.6.1'
   compile 'org.springframework.kafka:spring-kafka:1.2.1.RELEASE'
   compile('org.projectlombok:lombok')
+  compile group: 'com.jcraft', name: 'jsch', version: '0.1.54'
   compile('org.springframework.boot:spring-boot-starter-web')
   compile('org.springframework.boot:spring-boot-starter-logging')
   compile('org.springframework.boot:spring-boot-starter-aop')
