@@ -2,8 +2,10 @@ package ams.api.controllers;
 
 
 import ams.services.Service;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -19,8 +21,10 @@ public class Controller {
   }
 
   @GetMapping(path = "createNewKeyPair")
-  public void createNewPair() {
-    service.createNewKeyPair();
+  public String createNewPair(
+    @ApiParam(value = "密钥名字", required = true) @RequestParam(value = "pairName") String pairName
+  ) {
+    return service.createNewKeyPair(pairName);
   }
 
   @GetMapping(path = "close")

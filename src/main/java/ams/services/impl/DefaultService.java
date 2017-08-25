@@ -72,15 +72,17 @@ public class DefaultService implements Service {
   }
 
 
-  public void createNewKeyPair() {
+  public String createNewKeyPair(String pairName) {
     CreateKeyPairRequest request = new CreateKeyPairRequest();
-    request.setKeyPairName("test");
+    request.setKeyPairName(pairName);
     try {
       CreateKeyPairResponse response = iAcsClient.getAcsResponse(request);
-      System.out.println(response.getPrivateKeyBody());
+      return response.getPrivateKeyBody();
     } catch (ClientException e) {
       e.printStackTrace();
     }
+    return null;
+
   }
 
 

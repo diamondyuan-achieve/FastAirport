@@ -6,5 +6,5 @@ public interface Service {
   void test();
   void open();
   void close();
-  void createNewKeyPair();
+  String createNewKeyPair(String pairName);
 }
