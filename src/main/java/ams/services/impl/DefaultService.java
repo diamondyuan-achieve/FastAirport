@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -110,6 +112,16 @@ public class DefaultService implements Service {
       e.printStackTrace();
     }
   }
+
+
+  public void createFile(String pairName) throws IOException {
+    File myFile = new File(pairName);
+    if (!myFile.exists()) {
+      System.out.println(myFile.createNewFile());
+    }
+
+  }
+
 
   public void open() {
     System.out.println(createInstance());

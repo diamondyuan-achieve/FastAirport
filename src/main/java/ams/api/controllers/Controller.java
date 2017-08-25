@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RestController
 public class Controller {
 
@@ -19,6 +21,13 @@ public class Controller {
   public void getip() {
     service.test();
   }
+  @GetMapping(path = "createFile")
+  public void createFile(
+    @ApiParam(value = "密钥名字", required = true) @RequestParam(value = "pairName") String pairName
+  ) throws IOException {
+    service.createFile(pairName);
+  }
+
 
   @GetMapping(path = "createNewKeyPair")
   public String createNewPair(
