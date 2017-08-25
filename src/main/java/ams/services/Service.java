@@ -6,4 +6,5 @@ public interface Service {
   void test();
   void open();
   void close();
+  void createNewKeyPair();
 }

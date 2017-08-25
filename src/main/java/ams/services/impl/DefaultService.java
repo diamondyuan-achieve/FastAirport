@@ -1,14 +1,11 @@
 package ams.services.impl;
 
+import ams.services.Service;
 import com.aliyuncs.IAcsClient;
-import com.aliyuncs.ecs.model.v20140526.AttachKeyPairRequest;
-import com.aliyuncs.ecs.model.v20140526.AttachKeyPairResponse;
-import com.aliyuncs.ecs.model.v20140526.DescribeInstancesRequest;
-import com.aliyuncs.ecs.model.v20140526.DescribeInstancesResponse;
+import com.aliyuncs.ecs.model.v20140526.*;
 import com.aliyuncs.ess.model.v20140828.*;
 import com.aliyuncs.exceptions.ClientException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ams.services.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -69,6 +66,18 @@ public class DefaultService implements Service {
       System.out.println(response.getScalingInstances().get(0).getHealthStatus());
       getInstance(instanceId);
       attachKeyPair(instanceId);
+    } catch (ClientException e) {
+      e.printStackTrace();
+    }
+  }
+
+
+  public void createNewKeyPair() {
+    CreateKeyPairRequest request = new CreateKeyPairRequest();
+    request.setKeyPairName("test");
+    try {
+      CreateKeyPairResponse response = iAcsClient.getAcsResponse(request);
+      System.out.println(response.getPrivateKeyBody());
     } catch (ClientException e) {
       e.printStackTrace();
     }

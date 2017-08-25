@@ -40,6 +40,7 @@ public class Test {
     channelExec.disconnect();
   }
 
+
   public static void main(String[] args) throws IOException, JSchException {
     Test test = new Test();
     Session session = test.openSession("username", "host", 22);

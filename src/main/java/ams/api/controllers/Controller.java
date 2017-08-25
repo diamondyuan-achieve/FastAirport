@@ -14,17 +14,22 @@ public class Controller {
   Service service;
 
   @GetMapping(path = "getip")
-  public void searchByName() {
+  public void getip() {
     service.test();
   }
 
+  @GetMapping(path = "createNewKeyPair")
+  public void createNewPair() {
+    service.createNewKeyPair();
+  }
+
   @GetMapping(path = "close")
-  public void searchByeName() {
+  public void close() {
     service.close();
   }
 
   @GetMapping(path = "open")
-  public void searchByesdName() {
+  public void open() {
     service.open();
   }
 
