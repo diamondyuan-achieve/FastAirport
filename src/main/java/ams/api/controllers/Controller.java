@@ -50,7 +50,7 @@ public class Controller {
   *
   *
   * */
-  @GetMapping(path = "init")
+  @GetMapping(path = "AliyunInit")
   public void init() throws GenericException, ClientException, InterruptedException, JsonProcessingException {
     Config config = new Config();
     String vpcId = instanceService.createVpc(allDefaultName);
