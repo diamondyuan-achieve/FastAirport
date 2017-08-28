@@ -3,7 +3,13 @@ package ams.services;
 
 import ams.domain.GenericException;
 
-public interface Service {
+public interface InstanceService {
+
+
+  /*创建一个实例*/
+  String createInstance();
+
+
   void test();
 
   void open();

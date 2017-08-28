@@ -20,7 +20,6 @@ public class DefaultSessionService implements SessionService {
   }
 
 
-
   public void execCommand(Session session, String command) throws IOException, JSchException {
     Channel channel = session.openChannel("exec");
     ChannelExec channelExec = (ChannelExec) channel;

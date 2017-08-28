@@ -1,7 +1,7 @@
 package ams.services.impl;
 
 import ams.domain.GenericException;
-import ams.services.Service;
+import ams.services.InstanceService;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.ecs.model.v20140526.*;
 import com.aliyuncs.ess.model.v20140828.*;
@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class DefaultService implements Service {
+public class AliyunInstanceService implements InstanceService {
 
 
   @Value("${AttachKeyName}")
@@ -32,9 +32,8 @@ public class DefaultService implements Service {
   @Autowired
   private IAcsClient iAcsClient;
 
-
-  /*创建一个实例*/
-  private String createInstance() {
+  
+  public String createInstance() {
     try {
       DescribeScalingGroupsRequest groupsRequest = new DescribeScalingGroupsRequest();
       DescribeScalingGroupsResponse response = iAcsClient.getAcsResponse(groupsRequest);

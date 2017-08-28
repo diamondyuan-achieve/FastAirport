@@ -2,7 +2,7 @@ package ams.api.controllers;
 
 
 import ams.domain.GenericException;
-import ams.services.Service;
+import ams.services.InstanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,25 +12,25 @@ public class Controller {
 
 
   @Autowired
-  Service service;
+  InstanceService instanceService;
 
   @GetMapping(path = "getip")
   public void getip() {
-    service.test();
+    instanceService.test();
   }
   @GetMapping(path = "createFile")
   public void createFile() throws GenericException {
-    service.createPrivateKey();
+    instanceService.createPrivateKey();
   }
 
   @GetMapping(path = "close")
   public void close() {
-    service.close();
+    instanceService.close();
   }
 
   @GetMapping(path = "open")
   public void open() {
-    service.open();
+    instanceService.open();
   }
 
 }
