@@ -33,6 +33,7 @@ public class DefaultService implements Service {
   private IAcsClient iAcsClient;
 
 
+  /*创建一个实例*/
   private String createInstance() {
     try {
       DescribeScalingGroupsRequest groupsRequest = new DescribeScalingGroupsRequest();
@@ -67,7 +68,6 @@ public class DefaultService implements Service {
     try {
       DescribeScalingInstancesResponse response = iAcsClient.getAcsResponse(scalingInstancesRequest);
       String instanceId = response.getScalingInstances().get(0).getInstanceId();
-      System.out.println(instanceId);
       System.out.println(response.getScalingInstances().get(0).getHealthStatus());
       getInstance(instanceId);
       attachKeyPair(instanceId);
@@ -77,7 +77,7 @@ public class DefaultService implements Service {
   }
 
 
-  private String createNewKeyPair(String pairName) throws GenericException{
+  private String createNewKeyPair(String pairName) throws GenericException {
     CreateKeyPairRequest request = new CreateKeyPairRequest();
     request.setKeyPairName(pairName);
     try {
@@ -118,7 +118,7 @@ public class DefaultService implements Service {
   /*
   读取配置文件。创建一个ssh文件夹，里面存放一个privateKey
    */
-  public void createFile() throws GenericException {
+  public void createPrivateKey() throws GenericException {
     String pairName = attachKey;
     File sshFolder = new File("ssh");
     if (!sshFolder.exists()) {
@@ -142,14 +142,13 @@ public class DefaultService implements Service {
           writer.close();
         }
       } catch (IOException e) {
-        throw new GenericException("20001","创建文件失败");
+        throw new GenericException("20001", "创建文件失败");
       }
     }
   }
 
 
   public void open() {
-    System.out.println(createInstance());
     getScalingRules(createInstance());
     ExecuteScalingRuleRequest executeScalingRuleRequest = new ExecuteScalingRuleRequest();
     executeScalingRuleRequest.setScalingRuleAri(getScalingRules(createInstance()).get("开启"));

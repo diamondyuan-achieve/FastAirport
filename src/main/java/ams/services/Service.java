@@ -10,6 +10,5 @@ public interface Service {
 
   void close();
 
-
-  void createFile() throws GenericException;
+  void createPrivateKey() throws GenericException;
 }

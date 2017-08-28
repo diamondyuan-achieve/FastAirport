@@ -20,7 +20,7 @@ public class Controller {
   }
   @GetMapping(path = "createFile")
   public void createFile() throws GenericException {
-    service.createFile();
+    service.createPrivateKey();
   }
 
   @GetMapping(path = "close")
