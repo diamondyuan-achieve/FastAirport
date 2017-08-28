@@ -29,7 +29,7 @@ repositories {
 
 
 dependencies {
-  compile group: 'com.aliyun', name: 'aliyun-java-sdk-core', version: '3.2.5'
+  compile group: 'com.aliyun', name: 'aliyun-java-sdk-core', version: '3.2.9'
   compile group: 'com.aliyun', name: 'aliyun-java-sdk-ecs', version: '4.0.0'
   compile group: 'com.aliyun', name: 'aliyun-java-sdk-ess', version: '2.0.1'
   compile group: 'com.google.guava', name: 'guava', version: '22.0'
