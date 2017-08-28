@@ -1,6 +1,7 @@
 package ams.services.impl;
 
 import ams.domain.GenericException;
+import ams.services.DiamondUtils;
 import ams.services.InstanceService;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.ecs.model.v20140526.*;
@@ -13,8 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,13 +25,20 @@ public class AliyunInstanceService implements InstanceService {
   @Value("${AttachKeyName}")
   private String attachKey;
 
+  @Value("${ScalingGroupMaxSize}")
+  private Integer scalingGroupMaxSize;
+
+  @Value("${ScalingGroupMinSize}")
+  private Integer scalingGroupMinSize;
+
+
   @Autowired
   private ObjectMapper objectMapper;
 
   @Autowired
   private IAcsClient iAcsClient;
 
-  
+
   public String createInstance() {
     try {
       DescribeScalingGroupsRequest groupsRequest = new DescribeScalingGroupsRequest();
@@ -127,23 +133,9 @@ public class AliyunInstanceService implements InstanceService {
         log.error("创建文件失败");
       }
     }
+    String privateKey = createNewKeyPair(pairName);
     String filePath = String.format("ssh/%s.pem", pairName);
-    File myFile = new File(filePath);
-    if (!myFile.exists()) {
-      String privateKey = createNewKeyPair(pairName);
-      try {
-        if (myFile.createNewFile()) {
-          log.debug("文件创建成功");
-          FileWriter writer;
-          writer = new FileWriter(filePath);
-          writer.write(privateKey);
-          writer.flush();
-          writer.close();
-        }
-      } catch (IOException e) {
-        throw new GenericException("20001", "创建文件失败");
-      }
-    }
+    DiamondUtils.saveFile(privateKey,filePath);
   }
 
 
@@ -174,4 +166,31 @@ public class AliyunInstanceService implements InstanceService {
   }
 
 
+  /*根据伸缩组名称创建伸缩组 返回伸缩组id*/
+  private String createScalingGroup(String scalingGroupName) throws ClientException {
+    CreateScalingGroupRequest createScalingGroupRequest = new CreateScalingGroupRequest();
+    createScalingGroupRequest.setMaxSize(scalingGroupMaxSize);
+    createScalingGroupRequest.setMinSize(scalingGroupMinSize);
+    createScalingGroupRequest.setScalingGroupName(scalingGroupName);
+    CreateScalingGroupResponse response = iAcsClient.getAcsResponse(createScalingGroupRequest);
+    return response.getScalingGroupId();
+  }
+
+
+  /*根据安全组名称创建安全组*/
+  public String createSecurityGroup(String securityGroupName,String vpvId) throws ClientException {
+    CreateSecurityGroupRequest createSecurityGroup = new CreateSecurityGroupRequest();
+    createSecurityGroup.setSecurityGroupName(securityGroupName);
+    createSecurityGroup.setVpcId(vpvId);
+    CreateSecurityGroupResponse response = iAcsClient.getAcsResponse(createSecurityGroup);
+    return response.getSecurityGroupId();
+  }
+
+
+  public String createVpc(String vpcName) throws ClientException{
+    CreateVpcRequest createVpcRequest = new CreateVpcRequest();
+    createVpcRequest.setVpcName(vpcName);
+    CreateVpcResponse response = iAcsClient.getAcsResponse(createVpcRequest);
+    return response.getVpcId();
+  }
 }

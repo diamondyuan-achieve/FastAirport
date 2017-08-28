@@ -2,6 +2,7 @@ package ams.services;
 
 
 import ams.domain.GenericException;
+import com.aliyuncs.exceptions.ClientException;
 
 public interface InstanceService {
 
@@ -17,4 +18,13 @@ public interface InstanceService {
   void close();
 
   void createPrivateKey() throws GenericException;
+
+
+
+  String createSecurityGroup(String securityGroupName,String vpvId) throws ClientException;
+
+  String createVpc(String vpcName) throws ClientException;
+
+
+
 }
