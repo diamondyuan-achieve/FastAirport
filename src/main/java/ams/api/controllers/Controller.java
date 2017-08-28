@@ -1,9 +1,13 @@
 package ams.api.controllers;
 
 
+import ams.domain.Config;
 import ams.domain.GenericException;
+import ams.services.DiamondUtils;
 import ams.services.InstanceService;
 import com.aliyuncs.exceptions.ClientException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +19,9 @@ public class Controller {
 
   @Value("${DefaultName}")
   private String allDefaultName;
+
+  @Autowired
+  ObjectMapper objectMapper;
 
   @Autowired
   InstanceService instanceService;
@@ -34,11 +41,25 @@ public class Controller {
     instanceService.close();
   }
 
-  @GetMapping(path = "create")
-  public void open() throws GenericException,ClientException,InterruptedException {
+
+  /*项目初始化
+  * 1.建立专有网络
+  * 2.建立交换机
+  * 3.建立安全组
+  * 4.设置安全组规则
+  *
+  *
+  * */
+  @GetMapping(path = "init")
+  public void init() throws GenericException, ClientException, InterruptedException, JsonProcessingException {
+    Config config = new Config();
     String vpcId = instanceService.createVpc(allDefaultName);
+    config.setVpcId(vpcId);
     Thread.sleep(5000);
-    String securityGroupId = instanceService.createSecurityGroup(allDefaultName,vpcId);
+    String securityGroupId = instanceService.createSecurityGroup(allDefaultName, vpcId);
+    config.setSecurityGroupId(securityGroupId);
+    DiamondUtils.saveFile(objectMapper.writeValueAsString(config), "config");
   }
+
 
 }
