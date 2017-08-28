@@ -9,14 +9,11 @@ import java.io.InputStreamReader;
 public class Test {
 
 
-  private Session openSession(String username, String host, int port) throws JSchException {
-    JSch jsch = new JSch();
-    Session session = null;
-    jsch.addIdentity("path of prvkey");
-    session = jsch.getSession(username, host, port);
-    session.setConfig("StrictHostKeyChecking", "no");
-    session.connect(3000);
-    return session;
+  public static void main(String[] args) throws IOException, JSchException {
+    Test test = new Test();
+    Session session = test.openSession("root", "host", 22);
+    test.execCommand(session, "docker pull mritd/shadowsocks");
+    session.disconnect();
   }
 
   private void execCommand(Session session, String command) throws IOException, JSchException {
@@ -40,11 +37,13 @@ public class Test {
     channelExec.disconnect();
   }
 
-
-  public static void main(String[] args) throws IOException, JSchException {
-    Test test = new Test();
-    Session session = test.openSession("username", "host", 22);
-    test.execCommand(session, "apt-get update");
-    session.disconnect();
+  private Session openSession(String username, String host, int port) throws JSchException {
+    JSch jsch = new JSch();
+    Session session = null;
+    jsch.addIdentity("ssh/test.pem");
+    session = jsch.getSession(username, host, port);
+    session.setConfig("StrictHostKeyChecking", "no");
+    session.connect(3000);
+    return session;
   }
 }

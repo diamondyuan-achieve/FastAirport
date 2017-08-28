@@ -1,7 +1,7 @@
 package ams.services;
 
 
-import java.io.IOException;
+import ams.domain.GenericException;
 
 public interface Service {
   void test();
@@ -10,7 +10,6 @@ public interface Service {
 
   void close();
 
-  String createNewKeyPair(String pairName);
 
-  void createFile(String pairName) throws IOException;
+  void createFile() throws GenericException;
 }

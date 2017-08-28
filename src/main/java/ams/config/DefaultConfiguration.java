@@ -37,7 +37,11 @@ public class DefaultConfiguration {
   }
 
   @Bean
-  IAcsClient iAcsClient(@Value("${accessKey}") String accessKey, @Value("${accessSecret}") String accessSecret, @Value("${regionId}") String regionId) {
+  IAcsClient iAcsClient(
+    @Value("${accessKey}") String accessKey,
+    @Value("${accessSecret}") String accessSecret,
+    @Value("${regionId}") String regionId
+  ) {
     return new DefaultAcsClient(DefaultProfile.getProfile(regionId, accessKey, accessSecret));
   }
 

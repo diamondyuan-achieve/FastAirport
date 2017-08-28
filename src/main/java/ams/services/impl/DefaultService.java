@@ -1,25 +1,29 @@
 package ams.services.impl;
 
+import ams.domain.GenericException;
 import ams.services.Service;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.ecs.model.v20140526.*;
 import com.aliyuncs.ess.model.v20140828.*;
 import com.aliyuncs.exceptions.ClientException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class DefaultService implements Service {
 
 
-  @Value("${AttachKey}")
+  @Value("${AttachKeyName}")
   private String attachKey;
 
   @Autowired
@@ -42,7 +46,6 @@ public class DefaultService implements Service {
 
 
   private Map<String, String> getScalingRules(String scalingGroupId) {
-
     Map<String, String> scalingMap = new HashMap<>();
     DescribeScalingRulesRequest rulesRequest = new DescribeScalingRulesRequest();
     rulesRequest.setScalingGroupId(scalingGroupId);
@@ -74,17 +77,15 @@ public class DefaultService implements Service {
   }
 
 
-  public String createNewKeyPair(String pairName) {
+  private String createNewKeyPair(String pairName) throws GenericException{
     CreateKeyPairRequest request = new CreateKeyPairRequest();
     request.setKeyPairName(pairName);
     try {
       CreateKeyPairResponse response = iAcsClient.getAcsResponse(request);
       return response.getPrivateKeyBody();
     } catch (ClientException e) {
-      e.printStackTrace();
+      throw new GenericException("10001", "创建key失败");
     }
-    return null;
-
   }
 
 
@@ -114,12 +115,36 @@ public class DefaultService implements Service {
   }
 
 
-  public void createFile(String pairName) throws IOException {
-    File myFile = new File(pairName);
-    if (!myFile.exists()) {
-      System.out.println(myFile.createNewFile());
+  /*
+  读取配置文件。创建一个ssh文件夹，里面存放一个privateKey
+   */
+  public void createFile() throws GenericException {
+    String pairName = attachKey;
+    File sshFolder = new File("ssh");
+    if (!sshFolder.exists()) {
+      if (sshFolder.mkdir()) {
+        log.debug("成功创建ssh文件夹");
+      } else {
+        log.error("创建文件失败");
+      }
     }
-
+    String filePath = String.format("ssh/%s.pem", pairName);
+    File myFile = new File(filePath);
+    if (!myFile.exists()) {
+      String privateKey = createNewKeyPair(pairName);
+      try {
+        if (myFile.createNewFile()) {
+          log.debug("文件创建成功");
+          FileWriter writer;
+          writer = new FileWriter(filePath);
+          writer.write(privateKey);
+          writer.flush();
+          writer.close();
+        }
+      } catch (IOException e) {
+        throw new GenericException("20001","创建文件失败");
+      }
+    }
   }
 
 
