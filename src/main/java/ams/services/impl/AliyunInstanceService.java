@@ -1,21 +1,20 @@
 package ams.services.impl;
 
 import ams.domain.GenericException;
+import ams.domain.Instance;
+import ams.domain.ScalingRule;
 import ams.services.DiamondUtils;
 import ams.services.InstanceService;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.ecs.model.v20140526.*;
 import com.aliyuncs.ess.model.v20140828.*;
 import com.aliyuncs.exceptions.ClientException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @Slf4j
@@ -33,65 +32,10 @@ public class AliyunInstanceService implements InstanceService {
 
 
   @Autowired
-  private ObjectMapper objectMapper;
-
-  @Autowired
   private IAcsClient iAcsClient;
 
 
-  public String createInstance() {
-    try {
-      DescribeScalingGroupsRequest groupsRequest = new DescribeScalingGroupsRequest();
-      DescribeScalingGroupsResponse response = iAcsClient.getAcsResponse(groupsRequest);
-      return response.getScalingGroups().get(0).getScalingGroupId();
-    } catch (ClientException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
 
-
-  private Map<String, String> getScalingRules(String scalingGroupId) {
-    Map<String, String> scalingMap = new HashMap<>();
-    DescribeScalingRulesRequest rulesRequest = new DescribeScalingRulesRequest();
-    rulesRequest.setScalingGroupId(scalingGroupId);
-    try {
-      DescribeScalingRulesResponse response = iAcsClient.getAcsResponse(rulesRequest);
-      response.getScalingRules().forEach(o -> {
-        scalingMap.put(o.getScalingRuleName(), o.getScalingRuleAri());
-      });
-    } catch (ClientException e) {
-      e.printStackTrace();
-    }
-    return scalingMap;
-  }
-
-
-  public void test() {
-    DescribeScalingInstancesRequest scalingInstancesRequest = new DescribeScalingInstancesRequest();
-    scalingInstancesRequest.setScalingGroupId(createInstance());
-    try {
-      DescribeScalingInstancesResponse response = iAcsClient.getAcsResponse(scalingInstancesRequest);
-      String instanceId = response.getScalingInstances().get(0).getInstanceId();
-      System.out.println(response.getScalingInstances().get(0).getHealthStatus());
-      getInstance(instanceId);
-      attachKeyPair(instanceId);
-    } catch (ClientException e) {
-      e.printStackTrace();
-    }
-  }
-
-
-  private String createNewKeyPair(String pairName) throws GenericException {
-    CreateKeyPairRequest request = new CreateKeyPairRequest();
-    request.setKeyPairName(pairName);
-    try {
-      CreateKeyPairResponse response = iAcsClient.getAcsResponse(request);
-      return response.getPrivateKeyBody();
-    } catch (ClientException e) {
-      throw new GenericException("10001", "创建key失败");
-    }
-  }
 
 
   private void attachKeyPair(String instanceID) {
@@ -106,24 +50,43 @@ public class AliyunInstanceService implements InstanceService {
     }
   }
 
-  private void getInstance(String instanceID) {
+
+  private Instance getInstance(String instanceID) throws ClientException {
     DescribeInstancesRequest instancesRequest = new DescribeInstancesRequest();
-    try {
-      DescribeInstancesResponse response = iAcsClient.getAcsResponse(instancesRequest);
-      System.out.println(response.getTotalCount());
-      DescribeInstancesResponse.Instance instance = response.getInstances().get(0);
-      System.out.println(instance.getPublicIpAddress());
-      System.out.println(instance.getInstanceName());
-    } catch (ClientException e) {
-      e.printStackTrace();
-    }
+    instancesRequest.setInstanceIds(String.format("[\"%s\"]", instanceID));
+    DescribeInstancesResponse response = iAcsClient.getAcsResponse(instancesRequest);
+    DescribeInstancesResponse.Instance instance = response.getInstances().get(0);
+    return new Instance(){{
+      setId(instance.getInstanceId());
+      setRegionId(instance.getRegionId());
+      setIp(instance.getPublicIpAddress().get(0));
+      setStatus(instance.getStatus());
+    }};
   }
 
 
+  private void executRule(String ruleAri) throws ClientException {
+    ExecuteScalingRuleRequest executeScalingRuleRequest = new ExecuteScalingRuleRequest();
+    executeScalingRuleRequest.setScalingRuleAri(ruleAri);
+    iAcsClient.getAcsResponse(executeScalingRuleRequest);
+  }
+
+
+  public String getInstanceId(String scalingGroupId, String activeScalingConfigurationId) throws ClientException {
+    DescribeScalingInstancesRequest scalingInstancesRequest = new DescribeScalingInstancesRequest();
+    scalingInstancesRequest.setScalingGroupId(scalingGroupId);
+    scalingInstancesRequest.setScalingConfigurationId(activeScalingConfigurationId);
+    DescribeScalingInstancesResponse response = iAcsClient.getAcsResponse(scalingInstancesRequest);
+    if (response.getScalingInstances().size() > 0) {
+      return response.getScalingInstances().get(0).getInstanceId();
+    }
+    return null;
+  }
+
   /*
-  读取配置文件。创建一个ssh文件夹，里面存放一个privateKey
-   */
-  public void createPrivateKey() throws GenericException {
+ 读取配置文件。创建一个ssh文件夹，里面存放一个privateKey
+  */
+  public String createPrivateKey() throws GenericException {
     String pairName = attachKey;
     File sshFolder = new File("ssh");
     if (!sshFolder.exists()) {
@@ -134,51 +97,35 @@ public class AliyunInstanceService implements InstanceService {
       }
     }
     String privateKey = createNewKeyPair(pairName);
-    String filePath = String.format("ssh/%s.pem", pairName);
-    DiamondUtils.saveFile(privateKey,filePath);
+    DiamondUtils.saveFile(privateKey, pairName);
+    return pairName;
   }
 
-
-  public void open() {
-    getScalingRules(createInstance());
-    ExecuteScalingRuleRequest executeScalingRuleRequest = new ExecuteScalingRuleRequest();
-    executeScalingRuleRequest.setScalingRuleAri(getScalingRules(createInstance()).get("开启"));
+  private String createNewKeyPair(String pairName) throws GenericException {
+    CreateKeyPairRequest request = new CreateKeyPairRequest();
+    request.setKeyPairName(pairName);
     try {
-      ExecuteScalingRuleResponse response = iAcsClient.getAcsResponse(executeScalingRuleRequest);
-      String scalingActivityId = response.getScalingActivityId();
+      CreateKeyPairResponse response = iAcsClient.getAcsResponse(request);
+      return response.getPrivateKeyBody();
     } catch (ClientException e) {
-      e.printStackTrace();
-    }
-  }
-
-
-  public void close() {
-    System.out.println(createInstance());
-    getScalingRules(createInstance());
-    ExecuteScalingRuleRequest executeScalingRuleRequest = new ExecuteScalingRuleRequest();
-    executeScalingRuleRequest.setScalingRuleAri(getScalingRules(createInstance()).get("关闭"));
-    try {
-      ExecuteScalingRuleResponse response = iAcsClient.getAcsResponse(executeScalingRuleRequest);
-      String scalingActivityId = response.getScalingActivityId();
-    } catch (ClientException e) {
-      e.printStackTrace();
+      throw new GenericException("10001", "创建key失败");
     }
   }
 
 
   /*根据伸缩组名称创建伸缩组 返回伸缩组id*/
-  private String createScalingGroup(String scalingGroupName) throws ClientException {
+  public String createScalingGroup(String vSwitchID) throws ClientException {
     CreateScalingGroupRequest createScalingGroupRequest = new CreateScalingGroupRequest();
     createScalingGroupRequest.setMaxSize(scalingGroupMaxSize);
     createScalingGroupRequest.setMinSize(scalingGroupMinSize);
-    createScalingGroupRequest.setScalingGroupName(scalingGroupName);
+    createScalingGroupRequest.setVSwitchId(vSwitchID);
     CreateScalingGroupResponse response = iAcsClient.getAcsResponse(createScalingGroupRequest);
     return response.getScalingGroupId();
   }
 
 
   /*根据安全组名称创建安全组*/
-  public String createSecurityGroup(String securityGroupName,String vpvId) throws ClientException {
+  public String createSecurityGroup(String securityGroupName, String vpvId) throws ClientException {
     CreateSecurityGroupRequest createSecurityGroup = new CreateSecurityGroupRequest();
     createSecurityGroup.setSecurityGroupName(securityGroupName);
     createSecurityGroup.setVpcId(vpvId);
@@ -186,43 +133,83 @@ public class AliyunInstanceService implements InstanceService {
     return response.getSecurityGroupId();
   }
 
+  public String createScalingConfiguration(String scalingGroupId, String securityGroupId) throws ClientException {
+    CreateScalingConfigurationRequest createScalingConfigurationRequest = new CreateScalingConfigurationRequest();
+    createScalingConfigurationRequest.setInstanceType("ecs.xn4.small");
+    createScalingConfigurationRequest.setImageId("ubuntu_16_0402_64_40G_alibase_20170711.vhd");
+    createScalingConfigurationRequest.setInternetChargeType("PayByTraffic");
+    createScalingConfigurationRequest.setSystemDiskCategory("cloud_efficiency");
+    createScalingConfigurationRequest.setInternetMaxBandwidthOut(100);
+    createScalingConfigurationRequest.setIoOptimized("optimized");
+    createScalingConfigurationRequest.setSecurityGroupId(securityGroupId);
+    createScalingConfigurationRequest.setScalingGroupId(scalingGroupId);
+    CreateScalingConfigurationResponse response = iAcsClient.getAcsResponse(createScalingConfigurationRequest);
+    return response.getScalingConfigurationId();
+  }
 
-  public String createVpc(String vpcName) throws ClientException{
+
+  public String createVpc(String vpcName) throws ClientException {
     CreateVpcRequest createVpcRequest = new CreateVpcRequest();
     createVpcRequest.setVpcName(vpcName);
     CreateVpcResponse response = iAcsClient.getAcsResponse(createVpcRequest);
     return response.getVpcId();
   }
 
-  public String createVSwitch(String vSwitchName,String VpcId) throws ClientException{
+  public String createVSwitch(String vSwitchName, String VpcId) throws ClientException {
     CreateVSwitchRequest createVpcRequest = new CreateVSwitchRequest();
     createVpcRequest.setVSwitchName(vSwitchName);
     createVpcRequest.setVpcId(VpcId);
     createVpcRequest.setCidrBlock("172.31.99.0/24");
     createVpcRequest.setZoneId("cn-hongkong-c");
     CreateVSwitchResponse response = iAcsClient.getAcsResponse(createVpcRequest);
-    return  response.getVSwitchId();
+    return response.getVSwitchId();
   }
 
-  public void authorizeSecurityGroup(String securityGroupId) throws ClientException{
+  public void authorizeSecurityGroup(String securityGroupId) throws ClientException {
     AuthorizeSecurityGroupRequest authorizeSecurityGroupRequest = new AuthorizeSecurityGroupRequest();
     authorizeSecurityGroupRequest.setSecurityGroupId(securityGroupId);
     authorizeSecurityGroupRequest.setSourceCidrIp("0.0.0.0/0");
     authorizeSecurityGroupRequest.setIpProtocol("all");
     authorizeSecurityGroupRequest.setPortRange("-1/-1");
-    AuthorizeSecurityGroupResponse response = iAcsClient.getAcsResponse(authorizeSecurityGroupRequest);
+    iAcsClient.getAcsResponse(authorizeSecurityGroupRequest);
   }
 
-  public  void AuthorizeSecurityGroupEgress(String securityGroupId) throws ClientException{
+  public void AuthorizeSecurityGroupEgress(String securityGroupId) throws ClientException {
     AuthorizeSecurityGroupEgressRequest authorizeSecurityGroupEgressRequest = new AuthorizeSecurityGroupEgressRequest();
     authorizeSecurityGroupEgressRequest.setSecurityGroupId(securityGroupId);
     authorizeSecurityGroupEgressRequest.setDestCidrIp("0.0.0.0/0");
     authorizeSecurityGroupEgressRequest.setIpProtocol("all");
     authorizeSecurityGroupEgressRequest.setPortRange("-1/-1");
-    AuthorizeSecurityGroupEgressResponse response = iAcsClient.getAcsResponse(authorizeSecurityGroupEgressRequest);
+    iAcsClient.getAcsResponse(authorizeSecurityGroupEgressRequest);
   }
 
 
+  public ScalingRule createAddScalingRule(String ScalingGroupId) throws ClientException {
+    return createTotalCapacityRule(ScalingGroupId, 1);
+  }
+
+  private ScalingRule createTotalCapacityRule(String ScalingGroupId, int count) throws ClientException {
+    CreateScalingRuleRequest createScalingRuleRequest = new CreateScalingRuleRequest();
+    createScalingRuleRequest.setScalingGroupId(ScalingGroupId);
+    createScalingRuleRequest.setAdjustmentType("TotalCapacity");
+    createScalingRuleRequest.setAdjustmentValue(count);
+    CreateScalingRuleResponse response = iAcsClient.getAcsResponse(createScalingRuleRequest);
+    return new ScalingRule() {{
+      setScalingRuleAri(response.getScalingRuleAri());
+      setScalingRuleId(response.getScalingRuleId());
+    }};
+  }
+
+  public ScalingRule createRemoveScalingRule(String ScalingGroupId) throws ClientException {
+    return createTotalCapacityRule(ScalingGroupId, 0);
+  }
+
+  public void enableScalingGroup(String scalingGroupId, String activeScalingConfigurationId) throws ClientException {
+    EnableScalingGroupRequest enableScalingGroupRequest = new EnableScalingGroupRequest();
+    enableScalingGroupRequest.setScalingGroupId(scalingGroupId);
+    enableScalingGroupRequest.setActiveScalingConfigurationId(activeScalingConfigurationId);
+    iAcsClient.getAcsResponse(enableScalingGroupRequest);
+  }
 
 
 }
