@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.*;
+import java.util.Properties;
+
 @RestController
 public class Controller {
 
@@ -51,9 +54,12 @@ public class Controller {
   *
   * */
   @GetMapping(path = "AliyunInit")
-  public void init() throws GenericException, ClientException, InterruptedException, JsonProcessingException {
+  public void init() throws GenericException, ClientException, InterruptedException,IOException, JsonProcessingException {
+    Properties properties = new Properties();
     Config config = new Config();
     String vpcId = instanceService.createVpc(allDefaultName);
+    properties.put("vpcId", vpcId);
+    properties.store(new FileOutputStream(new File("ssh/1.properties")),"We");
     config.setVpcId(vpcId);
     Thread.sleep(5000);
     String securityGroupId = instanceService.createSecurityGroup(allDefaultName, vpcId);
