@@ -193,4 +193,36 @@ public class AliyunInstanceService implements InstanceService {
     CreateVpcResponse response = iAcsClient.getAcsResponse(createVpcRequest);
     return response.getVpcId();
   }
+
+  public String createVSwitch(String vSwitchName,String VpcId) throws ClientException{
+    CreateVSwitchRequest createVpcRequest = new CreateVSwitchRequest();
+    createVpcRequest.setVSwitchName(vSwitchName);
+    createVpcRequest.setVpcId(VpcId);
+    createVpcRequest.setCidrBlock("172.31.99.0/24");
+    createVpcRequest.setZoneId("cn-hongkong-c");
+    CreateVSwitchResponse response = iAcsClient.getAcsResponse(createVpcRequest);
+    return  response.getVSwitchId();
+  }
+
+  public void authorizeSecurityGroup(String securityGroupId) throws ClientException{
+    AuthorizeSecurityGroupRequest authorizeSecurityGroupRequest = new AuthorizeSecurityGroupRequest();
+    authorizeSecurityGroupRequest.setSecurityGroupId(securityGroupId);
+    authorizeSecurityGroupRequest.setSourceCidrIp("0.0.0.0/0");
+    authorizeSecurityGroupRequest.setIpProtocol("all");
+    authorizeSecurityGroupRequest.setPortRange("-1/-1");
+    AuthorizeSecurityGroupResponse response = iAcsClient.getAcsResponse(authorizeSecurityGroupRequest);
+  }
+
+  public  void AuthorizeSecurityGroupEgress(String securityGroupId) throws ClientException{
+    AuthorizeSecurityGroupEgressRequest authorizeSecurityGroupEgressRequest = new AuthorizeSecurityGroupEgressRequest();
+    authorizeSecurityGroupEgressRequest.setSecurityGroupId(securityGroupId);
+    authorizeSecurityGroupEgressRequest.setDestCidrIp("0.0.0.0/0");
+    authorizeSecurityGroupEgressRequest.setIpProtocol("all");
+    authorizeSecurityGroupEgressRequest.setPortRange("-1/-1");
+    AuthorizeSecurityGroupEgressResponse response = iAcsClient.getAcsResponse(authorizeSecurityGroupEgressRequest);
+  }
+
+
+
+
 }

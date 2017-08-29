@@ -55,16 +55,19 @@ public class Controller {
   * */
   @GetMapping(path = "AliyunInit")
   public void init() throws GenericException, ClientException, InterruptedException,IOException, JsonProcessingException {
-    Properties properties = new Properties();
-    Config config = new Config();
     String vpcId = instanceService.createVpc(allDefaultName);
-    properties.put("vpcId", vpcId);
-    properties.store(new FileOutputStream(new File("ssh/1.properties")),"We");
-    config.setVpcId(vpcId);
+    Thread.sleep(5000);
+    String vSwitch = instanceService.createVSwitch(allDefaultName,vpcId);
     Thread.sleep(5000);
     String securityGroupId = instanceService.createSecurityGroup(allDefaultName, vpcId);
-    config.setSecurityGroupId(securityGroupId);
-    DiamondUtils.saveFile(objectMapper.writeValueAsString(config), "config");
+    Thread.sleep(5000);
+    instanceService.authorizeSecurityGroup(securityGroupId);
+    instanceService.AuthorizeSecurityGroupEgress(securityGroupId);
+    Properties properties = new Properties();
+    properties.put("vpcId", vpcId);
+    properties.put("switchId",vSwitch);
+    properties.put("securityGroupId",securityGroupId);
+    properties.store(new FileOutputStream(new File("ssh/1.properties")),null);
   }
 
 
