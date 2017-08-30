@@ -113,7 +113,7 @@ public class AliyunInstanceService implements InstanceService {
 
 
   /*根据伸缩组名称创建伸缩组 返回伸缩组id*/
-  public String createScalingGroup(String vSwitchID) throws ClientException {
+  private String createScalingGroup(String vSwitchID) throws ClientException {
     CreateScalingGroupRequest createScalingGroupRequest = new CreateScalingGroupRequest();
     createScalingGroupRequest.setMaxSize(scalingGroupMaxSize);
     createScalingGroupRequest.setMinSize(scalingGroupMinSize);
@@ -124,7 +124,7 @@ public class AliyunInstanceService implements InstanceService {
 
 
   /*根据安全组名称创建安全组*/
-  public String createSecurityGroup(String securityGroupName, String vpvId) throws ClientException {
+  private String createSecurityGroup(String securityGroupName, String vpvId) throws ClientException {
     CreateSecurityGroupRequest createSecurityGroup = new CreateSecurityGroupRequest();
     createSecurityGroup.setSecurityGroupName(securityGroupName);
     createSecurityGroup.setVpcId(vpvId);
@@ -132,7 +132,7 @@ public class AliyunInstanceService implements InstanceService {
     return response.getSecurityGroupId();
   }
 
-  public String createScalingConfiguration(String scalingGroupId, String securityGroupId) throws ClientException {
+  private String createScalingConfiguration(String scalingGroupId, String securityGroupId) throws ClientException {
     CreateScalingConfigurationRequest createScalingConfigurationRequest = new CreateScalingConfigurationRequest();
     createScalingConfigurationRequest.setInstanceType("ecs.xn4.small");
     createScalingConfigurationRequest.setImageId("ubuntu_16_0402_64_40G_alibase_20170711.vhd");
@@ -146,7 +146,7 @@ public class AliyunInstanceService implements InstanceService {
     return response.getScalingConfigurationId();
   }
 
-  public void authorizeSecurityGroup(String securityGroupId) throws ClientException {
+  private void authorizeSecurityGroup(String securityGroupId) throws ClientException {
     AuthorizeSecurityGroupRequest authorizeSecurityGroupRequest = new AuthorizeSecurityGroupRequest();
     authorizeSecurityGroupRequest.setSecurityGroupId(securityGroupId);
     authorizeSecurityGroupRequest.setSourceCidrIp("0.0.0.0/0");
@@ -155,7 +155,7 @@ public class AliyunInstanceService implements InstanceService {
     iAcsClient.getAcsResponse(authorizeSecurityGroupRequest);
   }
 
-  public void AuthorizeSecurityGroupEgress(String securityGroupId) throws ClientException {
+  private void AuthorizeSecurityGroupEgress(String securityGroupId) throws ClientException {
     AuthorizeSecurityGroupEgressRequest authorizeSecurityGroupEgressRequest = new AuthorizeSecurityGroupEgressRequest();
     authorizeSecurityGroupEgressRequest.setSecurityGroupId(securityGroupId);
     authorizeSecurityGroupEgressRequest.setDestCidrIp("0.0.0.0/0");
@@ -165,7 +165,7 @@ public class AliyunInstanceService implements InstanceService {
   }
 
 
-  public ScalingRule createAddScalingRule(String ScalingGroupId) throws ClientException {
+  private ScalingRule createAddScalingRule(String ScalingGroupId) throws ClientException {
     return createTotalCapacityRule(ScalingGroupId, 1);
   }
 
@@ -181,11 +181,11 @@ public class AliyunInstanceService implements InstanceService {
     }};
   }
 
-  public ScalingRule createRemoveScalingRule(String ScalingGroupId) throws ClientException {
+  private ScalingRule createRemoveScalingRule(String ScalingGroupId) throws ClientException {
     return createTotalCapacityRule(ScalingGroupId, 0);
   }
 
-  public void enableScalingGroup(String scalingGroupId, String activeScalingConfigurationId) throws ClientException {
+  private void enableScalingGroup(String scalingGroupId, String activeScalingConfigurationId) throws ClientException {
     EnableScalingGroupRequest enableScalingGroupRequest = new EnableScalingGroupRequest();
     enableScalingGroupRequest.setScalingGroupId(scalingGroupId);
     enableScalingGroupRequest.setActiveScalingConfigurationId(activeScalingConfigurationId);
@@ -234,14 +234,14 @@ public class AliyunInstanceService implements InstanceService {
 
   /*建立专有网络 返回专有网络的id
   *create VPC and return id of VPC*/
-  public String createVpc(String vpcName) throws ClientException {
+  private String createVpc(String vpcName) throws ClientException {
     CreateVpcRequest createVpcRequest = new CreateVpcRequest();
     createVpcRequest.setVpcName(vpcName);
     CreateVpcResponse response = iAcsClient.getAcsResponse(createVpcRequest);
     return response.getVpcId();
   }
 
-  public String createVSwitch(String vSwitchName, String VpcId) throws ClientException {
+  private String createVSwitch(String vSwitchName, String VpcId) throws ClientException {
     CreateVSwitchRequest createVpcRequest = new CreateVSwitchRequest();
     createVpcRequest.setVSwitchName(vSwitchName);
     createVpcRequest.setVpcId(VpcId);
