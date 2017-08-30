@@ -1,6 +1,5 @@
 package ams.services.impl;
 
-import ams.domain.GenericException;
 import ams.domain.Instance;
 import ams.domain.ScalingRule;
 import ams.services.DiamondUtils;
@@ -15,6 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 @Component
 @Slf4j
@@ -30,12 +32,12 @@ public class AliyunInstanceService implements InstanceService {
   @Value("${ScalingGroupMinSize}")
   private Integer scalingGroupMinSize;
 
+  @Value("${DefaultName}")
+  private String allDefaultName;
+
 
   @Autowired
   private IAcsClient iAcsClient;
-
-
-
 
 
   private void attachKeyPair(String instanceID) {
@@ -56,7 +58,7 @@ public class AliyunInstanceService implements InstanceService {
     instancesRequest.setInstanceIds(String.format("[\"%s\"]", instanceID));
     DescribeInstancesResponse response = iAcsClient.getAcsResponse(instancesRequest);
     DescribeInstancesResponse.Instance instance = response.getInstances().get(0);
-    return new Instance(){{
+    return new Instance() {{
       setId(instance.getInstanceId());
       setRegionId(instance.getRegionId());
       setIp(instance.getPublicIpAddress().get(0));
@@ -86,7 +88,7 @@ public class AliyunInstanceService implements InstanceService {
   /*
  读取配置文件。创建一个ssh文件夹，里面存放一个privateKey
   */
-  public String createPrivateKey() throws GenericException {
+  public String createPrivateKey() throws ClientException, IOException {
     String pairName = attachKey;
     File sshFolder = new File("ssh");
     if (!sshFolder.exists()) {
@@ -101,15 +103,12 @@ public class AliyunInstanceService implements InstanceService {
     return pairName;
   }
 
-  private String createNewKeyPair(String pairName) throws GenericException {
+
+  private String createNewKeyPair(String pairName) throws ClientException {
     CreateKeyPairRequest request = new CreateKeyPairRequest();
     request.setKeyPairName(pairName);
-    try {
-      CreateKeyPairResponse response = iAcsClient.getAcsResponse(request);
-      return response.getPrivateKeyBody();
-    } catch (ClientException e) {
-      throw new GenericException("10001", "创建key失败");
-    }
+    CreateKeyPairResponse response = iAcsClient.getAcsResponse(request);
+    return response.getPrivateKeyBody();
   }
 
 
@@ -145,24 +144,6 @@ public class AliyunInstanceService implements InstanceService {
     createScalingConfigurationRequest.setScalingGroupId(scalingGroupId);
     CreateScalingConfigurationResponse response = iAcsClient.getAcsResponse(createScalingConfigurationRequest);
     return response.getScalingConfigurationId();
-  }
-
-
-  public String createVpc(String vpcName) throws ClientException {
-    CreateVpcRequest createVpcRequest = new CreateVpcRequest();
-    createVpcRequest.setVpcName(vpcName);
-    CreateVpcResponse response = iAcsClient.getAcsResponse(createVpcRequest);
-    return response.getVpcId();
-  }
-
-  public String createVSwitch(String vSwitchName, String VpcId) throws ClientException {
-    CreateVSwitchRequest createVpcRequest = new CreateVSwitchRequest();
-    createVpcRequest.setVSwitchName(vSwitchName);
-    createVpcRequest.setVpcId(VpcId);
-    createVpcRequest.setCidrBlock("172.31.99.0/24");
-    createVpcRequest.setZoneId("cn-hongkong-c");
-    CreateVSwitchResponse response = iAcsClient.getAcsResponse(createVpcRequest);
-    return response.getVSwitchId();
   }
 
   public void authorizeSecurityGroup(String securityGroupId) throws ClientException {
@@ -210,6 +191,66 @@ public class AliyunInstanceService implements InstanceService {
     enableScalingGroupRequest.setActiveScalingConfigurationId(activeScalingConfigurationId);
     iAcsClient.getAcsResponse(enableScalingGroupRequest);
   }
+
+
+  /*项目初始化
+  * 1.建立专有网络
+  * 2.建立交换机
+  * 3.创建伸缩组
+  * 4.建立安全组
+  * 5.设置伸缩组规则
+  * 6.启用伸缩组
+  * 7.设置安全组出/入规则
+  * 8.创建SSH Key并且保存在本地
+  * 9.把上面的数据保存好，并且写入配置文件
+  * */
+  public void serviceInit() throws IOException, ClientException, InterruptedException {
+    String vpcId = createVpc(allDefaultName);
+    Thread.sleep(10000);
+    String vSwitch = createVSwitch(allDefaultName, vpcId);
+    Thread.sleep(5000);
+    String scalingGroupId = createScalingGroup(vSwitch);
+    String securityGroupId = createSecurityGroup(allDefaultName, vpcId);
+    Thread.sleep(5000);
+    String scalingConfigurationId = createScalingConfiguration(scalingGroupId, securityGroupId);
+    ScalingRule scalingAddRule = createAddScalingRule(scalingGroupId);
+    ScalingRule scalingRemoveRule = createRemoveScalingRule(scalingGroupId);
+    enableScalingGroup(scalingGroupId, scalingConfigurationId);
+    authorizeSecurityGroup(securityGroupId);
+    AuthorizeSecurityGroupEgress(securityGroupId);
+    String pairName = createPrivateKey();
+    Properties properties = new Properties();
+    properties.put("vpcId", vpcId);
+    properties.put("switchId", vSwitch);
+    properties.put("scalingGroupId", scalingGroupId);
+    properties.put("securityGroupId", securityGroupId);
+    properties.put("scalingConfigurationId", scalingConfigurationId);
+    properties.put("scalingAddRuleAri", scalingAddRule.getScalingRuleAri());
+    properties.put("scalingRemoveRuleAri", scalingRemoveRule.getScalingRuleAri());
+    properties.put("pairName", pairName);
+    properties.store(new FileOutputStream(new File("Aliyun.properties")), null);
+  }
+
+
+  /*建立专有网络 返回专有网络的id
+  *create VPC and return id of VPC*/
+  public String createVpc(String vpcName) throws ClientException {
+    CreateVpcRequest createVpcRequest = new CreateVpcRequest();
+    createVpcRequest.setVpcName(vpcName);
+    CreateVpcResponse response = iAcsClient.getAcsResponse(createVpcRequest);
+    return response.getVpcId();
+  }
+
+  public String createVSwitch(String vSwitchName, String VpcId) throws ClientException {
+    CreateVSwitchRequest createVpcRequest = new CreateVSwitchRequest();
+    createVpcRequest.setVSwitchName(vSwitchName);
+    createVpcRequest.setVpcId(VpcId);
+    createVpcRequest.setCidrBlock("172.31.99.0/24");
+    createVpcRequest.setZoneId("cn-hongkong-c");
+    CreateVSwitchResponse response = iAcsClient.getAcsResponse(createVpcRequest);
+    return response.getVSwitchId();
+  }
+
 
 
 }

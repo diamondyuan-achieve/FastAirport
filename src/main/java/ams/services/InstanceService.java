@@ -5,9 +5,13 @@ import ams.domain.GenericException;
 import ams.domain.ScalingRule;
 import com.aliyuncs.exceptions.ClientException;
 
+import java.io.IOException;
+
 public interface InstanceService {
 
-  String createPrivateKey() throws GenericException;
+  void serviceInit() throws IOException,GenericException,ClientException,InterruptedException;
+
+  String createPrivateKey() throws ClientException, IOException;
 
   String getInstanceId(String scalingGroupId, String activeScalingConfigurationId) throws ClientException;
 
@@ -30,8 +34,4 @@ public interface InstanceService {
   ScalingRule createRemoveScalingRule(String ScalingGroupId) throws ClientException;
 
   void enableScalingGroup(String scalingGroupId,String activeScalingConfigurationId) throws ClientException;
-
-
-
-
 }
