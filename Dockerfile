@@ -3,6 +3,6 @@ MAINTAINER FandiYuan  <georgeyuan@diamondyuan.com>
 
 ADD ./ /tmp/
 
-RUN apk add --no-cache bash && \
+RUN apk add --update bash && rm -rf /var/cache/apk/* && \
     cd /tmp && \
     gradle build
