@@ -3,5 +3,6 @@ MAINTAINER FandiYuan  <georgeyuan@diamondyuan.com>
 
 ADD ./ /tmp/
 
-RUN cd /tmp && \
+RUN apk add bash && \
+    cd /tmp && \
     gradle build
