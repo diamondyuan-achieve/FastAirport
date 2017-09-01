@@ -1,40 +1,31 @@
 package ams.config;
 
+import ams.domain.Config;
+import ams.domain.Instance;
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.profile.DefaultProfile;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import okhttp3.OkHttpClient;
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+import java.util.concurrent.Executors;
 
 
 @Configuration
 @EnableAsync
 public class DefaultConfiguration {
 
-  @Bean
-  public OkHttpClient okHttpClient() {
-    return new OkHttpClient.Builder().build();
-  }
 
-  @Bean
-  public ObjectMapper objectMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    mapper.registerModule(new JavaTimeModule());
-    return mapper;
-  }
+
+
 
   @Bean
   IAcsClient iAcsClient(
@@ -45,6 +36,41 @@ public class DefaultConfiguration {
     return new DefaultAcsClient(DefaultProfile.getProfile(regionId, accessKey, accessSecret));
   }
 
+  @Bean
+  Instance instance() {
+    return new Instance() {{
+      setExist(false);
+    }};
+  }
+
+  @Bean
+  Config getConfig(@Value("${default.conf.path}") String confPath) throws IOException {
+    File confFile = new File(confPath);
+    if (confFile.exists() && confFile.isFile()) {
+      Properties properties = new Properties();
+      properties.load(new FileInputStream(confPath));
+      return new Config() {{
+        setFirstLoad(false);
+        setVpcId(properties.getProperty("vpcId"));
+        setSwitchId(properties.getProperty("switchId"));
+        setScalingGroupId(properties.getProperty("scalingGroupId"));
+        setSecurityGroupId(properties.getProperty("securityGroupId"));
+        setScalingConfigurationId(properties.getProperty("scalingConfigurationId"));
+        setScalingAddRuleAri(properties.getProperty("scalingAddRuleAri"));
+        setScalingRemoveRuleAri(properties.getProperty("scalingRemoveRuleAri"));
+        setPairName(properties.getProperty("pairName"));
+        setStatus("ok");
+      }};
+    }
+    return new Config() {{
+      setFirstLoad(true);
+    }};
+  }
+
+  @Bean
+  public EventBus eventBus() {
+    return new AsyncEventBus(Executors.newFixedThreadPool(6));
+  }
 
 
 }

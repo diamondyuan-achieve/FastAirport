@@ -1,17 +1,19 @@
 package ams.services;
 
 
-import ams.domain.GenericException;
 import com.aliyuncs.exceptions.ClientException;
 
 import java.io.IOException;
 
 public interface InstanceService {
 
-  void serviceInit() throws IOException,GenericException,ClientException,InterruptedException;
+  void serviceInit() throws IOException, ClientException, InterruptedException;
 
-  String createPrivateKey() throws ClientException, IOException;
+  void createInstance() throws ClientException;
 
-  String getInstanceId(String scalingGroupId, String activeScalingConfigurationId) throws ClientException;
+  void releaseInstance() throws ClientException;
+
+  void refreshInstance() throws ClientException;
+
 
 }
