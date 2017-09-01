@@ -26,11 +26,8 @@ public class AliyunInstanceService implements InstanceService {
   @Value("${AttachKeyName}")
   private String attachKey;
 
-  @Value("${ScalingGroupMaxSize}")
-  private Integer scalingGroupMaxSize;
-
-  @Value("${ScalingGroupMinSize}")
-  private Integer scalingGroupMinSize;
+  private static final int scalingGroupMaxSize = 1;
+  private static final int scalingGroupMinSize = 0;
 
   @Value("${DefaultName}")
   private String allDefaultName;
