@@ -7,8 +7,11 @@ import ams.domain.Instance;
 import ams.domain.ResultWrapper;
 import ams.event.domain.ActionEvent;
 import ams.event.domain.ActionEventType;
+import ams.services.InstanceService;
+import ams.services.impl.AliyunInstanceService;
 import com.aliyuncs.exceptions.ClientException;
 import com.google.common.eventbus.EventBus;
+import com.jcraft.jsch.JSchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,15 +24,15 @@ import java.io.IOException;
 public class Controller {
 
 
-  String INSTALL_DOCKER = "curl -s https://get.docker.com/ | sudo sh";
-
-  String INSTALL_SS = "docker pull mritd/shadowsocks";
-
-  String SS_RUN = "docker run -dt --name ss -p %s:%s mritd/shadowsocks -s \"-s 0.0.0.0 -p 6443 -m aes-256-cfb -k test123 --fast-open\"";
 
   private Config config;
   private EventBus eventBus;
+
+  @Autowired
   private Instance instance;
+
+  @Autowired
+  InstanceService instanceService;
 
   @Autowired
   private void setConfig(Config config, EventBus eventBus, Instance instance) {
@@ -62,6 +65,16 @@ public class Controller {
   public ResultWrapper<Instance> AliyunCreateInstance() {
     eventBus.post(new ActionEvent() {{
       setAction(ActionEventType.ALI_CREATE_INSTANCE);
+    }});
+    return new ResultWrapper<>(instance);
+  }
+
+
+  /*阿里云实例进行初始化*/
+  @GetMapping(path = "/api/aliyun/Instance/init")
+  public ResultWrapper<Instance> installDocker() throws JSchException,IOException,ClientException,InterruptedException{
+    eventBus.post(new ActionEvent() {{
+      setAction(ActionEventType.ALI_INSTANCE_INIT);
     }});
     return new ResultWrapper<>(instance);
   }

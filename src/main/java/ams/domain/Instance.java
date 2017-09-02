@@ -2,11 +2,16 @@ package ams.domain;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class Instance {
-  private boolean exist;
+  private Boolean exist;
   private String ip;
   private String id;
   private String status;
   private String regionId;
+  private Shadow shadowConf;
+  private List<Command> command;
+
 }

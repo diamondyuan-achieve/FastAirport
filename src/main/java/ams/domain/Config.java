@@ -14,4 +14,5 @@ public class Config {
   private String scalingAddRuleAri;
   private String scalingRemoveRuleAri;
   private String pairName;
+  private String keyPairPath;
 }

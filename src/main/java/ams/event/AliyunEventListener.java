@@ -8,6 +8,7 @@ import ams.services.impl.AliyunInstanceService;
 import com.aliyuncs.exceptions.ClientException;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.jcraft.jsch.JSchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +46,7 @@ public class AliyunEventListener {
 
 
   @Subscribe
-  public void messageSubscriber(ActionEvent e) throws ClientException, IOException, InterruptedException {
+  public void messageSubscriber(ActionEvent e) throws JSchException, ClientException, IOException, InterruptedException {
     switch (e.getAction()) {
       case ALI_INIT: {
         if (config.isFirstLoad()) {
@@ -55,19 +56,28 @@ public class AliyunEventListener {
         break;
       }
       case ALI_CREATE_INSTANCE: {
-        if (!instance.isExist()) {
+        if (!instance.getExist()) {
           instanceService.createInstance();
         }
+        instanceService.refreshInstance();
+
         break;
       }
       case ALI_RELEASE_INSTANCE: {
-        if (instance.isExist()) {
+        if (instance == null || instance.getExist()) {
           instanceService.releaseInstance();
         }
+        instanceService.refreshInstance();
         break;
       }
       case ALI_INSTANCE_REFRESH: {
         instanceService.refreshInstance();
+        break;
+      }
+      case ALI_INSTANCE_INIT: {
+        if (instance.getCommand() == null || instance.getCommand().size() < 1) {
+          instanceService.instanceInit();
+        }
         break;
       }
       default:

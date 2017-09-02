@@ -59,6 +59,7 @@ public class DefaultConfiguration {
         setScalingAddRuleAri(properties.getProperty("scalingAddRuleAri"));
         setScalingRemoveRuleAri(properties.getProperty("scalingRemoveRuleAri"));
         setPairName(properties.getProperty("pairName"));
+        setKeyPairPath(properties.getProperty("keyPairPath"));
         setStatus("ok");
       }};
     }

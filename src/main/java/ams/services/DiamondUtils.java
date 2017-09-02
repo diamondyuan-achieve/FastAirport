@@ -1,8 +1,8 @@
 package ams.services;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import com.jcraft.jsch.*;
+
+import java.io.*;
 
 public class DiamondUtils {
 
@@ -19,6 +19,42 @@ public class DiamondUtils {
       }
     }
   }
+
+
+  public static Session openSession(String username, String host, int port, String keyPath) throws JSchException {
+    JSch jsch = new JSch();
+    Session session;
+    jsch.addIdentity(keyPath);
+    session = jsch.getSession(username, host, port);
+    session.setConfig("StrictHostKeyChecking", "no");
+    session.connect(3000);
+    return session;
+  }
+
+
+  public static int execCommand(Session session, String command) throws JSchException,IOException {
+    Channel channel = session.openChannel("exec");
+    ChannelExec channelExec = (ChannelExec) channel;
+    channelExec.setCommand(command);
+    channelExec.setInputStream(null);
+    BufferedReader input = new BufferedReader(new InputStreamReader
+      (channelExec.getInputStream()));
+    channelExec.connect();
+    String line;
+    while ((line = input.readLine()) != null) {
+      System.out.println(line);
+    }
+    while (!channelExec.isClosed()){
+
+    }
+
+    if (channelExec.isClosed()) {
+      channelExec.disconnect();
+      return channelExec.getExitStatus();
+    }
+    return -1;
+  }
+
 
 
 }
