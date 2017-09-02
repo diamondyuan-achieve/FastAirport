@@ -8,7 +8,6 @@ import ams.domain.ResultWrapper;
 import ams.event.domain.ActionEvent;
 import ams.event.domain.ActionEventType;
 import ams.services.InstanceService;
-import ams.services.impl.AliyunInstanceService;
 import com.aliyuncs.exceptions.ClientException;
 import com.google.common.eventbus.EventBus;
 import com.jcraft.jsch.JSchException;
@@ -24,15 +23,12 @@ import java.io.IOException;
 public class Controller {
 
 
-
-  private Config config;
-  private EventBus eventBus;
-
-  @Autowired
-  private Instance instance;
-
   @Autowired
   InstanceService instanceService;
+  private Config config;
+  private EventBus eventBus;
+  @Autowired
+  private Instance instance;
 
   @Autowired
   private void setConfig(Config config, EventBus eventBus, Instance instance) {
@@ -72,7 +68,7 @@ public class Controller {
 
   /*阿里云实例进行初始化*/
   @GetMapping(path = "/api/aliyun/Instance/init")
-  public ResultWrapper<Instance> installDocker() throws JSchException,IOException,ClientException,InterruptedException{
+  public ResultWrapper<Instance> installDocker() throws JSchException, IOException, ClientException, InterruptedException {
     eventBus.post(new ActionEvent() {{
       setAction(ActionEventType.ALI_INSTANCE_INIT);
     }});

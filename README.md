@@ -1,7 +1,4 @@
 # FastAriport
 
-## 错误码为五位数数字
-1开头为阿里云错误
-10001 创建key失败
-
-20001 创建文件失败
+使用方法
++ 安装 docker pull diamondyuan/fastairport

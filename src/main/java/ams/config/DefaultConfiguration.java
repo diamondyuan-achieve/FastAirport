@@ -24,9 +24,6 @@ import java.util.concurrent.Executors;
 public class DefaultConfiguration {
 
 
-
-
-
   @Bean
   IAcsClient iAcsClient(
     @Value("${accessKey}") String accessKey,

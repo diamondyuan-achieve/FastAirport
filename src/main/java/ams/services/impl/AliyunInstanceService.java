@@ -44,22 +44,18 @@ public class AliyunInstanceService implements InstanceService {
 
   @Value("config/fastAirport.conf")
   private String DEFAULT_CONFIG_PATH;
-
+  private Instance instance;
+  private IAcsClient iAcsClient;
 
   @Autowired
   private void getConfig(Config config) {
     this.config = config;
   }
 
-  private Instance instance;
-
-
   @Autowired
   public void setInstance(Instance instance) {
     this.instance = instance;
   }
-
-  private IAcsClient iAcsClient;
 
   @Autowired
   private void setIcsClient(IAcsClient iAcsClient) {
@@ -122,7 +118,7 @@ public class AliyunInstanceService implements InstanceService {
   /*刷新实例状态*/
   public void refreshInstance() throws ClientException {
     String instanceId = getInstanceId(config.getScalingGroupId(), config.getScalingConfigurationId());
-    if (instanceId == null){
+    if (instanceId == null) {
       instance.setId(null);
       instance.setIp(null);
       instance.setCommand(null);

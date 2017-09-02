@@ -32,7 +32,7 @@ public class DiamondUtils {
   }
 
 
-  public static int execCommand(Session session, String command) throws JSchException,IOException {
+  public static int execCommand(Session session, String command) throws JSchException, IOException {
     Channel channel = session.openChannel("exec");
     ChannelExec channelExec = (ChannelExec) channel;
     channelExec.setCommand(command);
@@ -44,7 +44,7 @@ public class DiamondUtils {
     while ((line = input.readLine()) != null) {
       System.out.println(line);
     }
-    while (!channelExec.isClosed()){
+    while (!channelExec.isClosed()) {
 
     }
 
@@ -54,7 +54,6 @@ public class DiamondUtils {
     }
     return -1;
   }
-
 
 
 }

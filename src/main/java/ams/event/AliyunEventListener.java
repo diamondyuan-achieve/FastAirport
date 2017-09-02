@@ -24,6 +24,12 @@ public class AliyunEventListener {
 
 
   @Autowired
+  public AliyunEventListener(EventBus configEventBus) {
+    this.eventBus = configEventBus;
+    eventBus.register(this); // register this instance with the event bus so it receives any events
+  }
+
+  @Autowired
   public void setInstance(Instance instance) {
     this.instance = instance;
   }
@@ -37,13 +43,6 @@ public class AliyunEventListener {
   public void setService(AliyunInstanceService instanceService) {
     this.instanceService = instanceService;
   }
-
-  @Autowired
-  public AliyunEventListener(EventBus configEventBus) {
-    this.eventBus = configEventBus;
-    eventBus.register(this); // register this instance with the event bus so it receives any events
-  }
-
 
   @Subscribe
   public void messageSubscriber(ActionEvent e) throws JSchException, ClientException, IOException, InterruptedException {
