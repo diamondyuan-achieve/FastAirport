@@ -38,7 +38,7 @@ public class AliyunInstanceServiceImpl implements InstanceService {
   private static final String VPC_SWITCH_ZONE_ID = "cn-hongkong-c";
   private static final String DEFAULT_CIDR_BLOCK = "172.31.99.0/24";
   private static final String DEFAULT_IMAGE_ID = "ubuntu_16_0402_64_40G_alibase_20170711.vhd";
-  private static final String DEFAULT_INSTALCE_TYPE = "ecs.xn4.small";
+  private static final String DEFAULT_INSTANCE_TYPE = "ecs.xn4.small";
   private static final int SCALING_GROUP_MAX_SIZE = 1;
   private static final int SCALING_GROUP_MIN_SIZE = 0;
 
@@ -288,7 +288,7 @@ public class AliyunInstanceServiceImpl implements InstanceService {
 
   private String createScalingConfiguration(String scalingGroupId, String securityGroupId) throws ClientException {
     CreateScalingConfigurationRequest createScalingConfigurationRequest = new CreateScalingConfigurationRequest();
-    createScalingConfigurationRequest.setInstanceType(DEFAULT_INSTALCE_TYPE);
+    createScalingConfigurationRequest.setInstanceType(DEFAULT_INSTANCE_TYPE);
     createScalingConfigurationRequest.setImageId(DEFAULT_IMAGE_ID);
     createScalingConfigurationRequest.setInternetChargeType("PayByTraffic");
     createScalingConfigurationRequest.setSystemDiskCategory("cloud_efficiency");
