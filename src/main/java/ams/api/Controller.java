@@ -19,6 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 
+/**
+ * Controller
+ *
+ * @author DiamondYuan
+ */
 @RestController
 public class Controller {
 
@@ -49,7 +54,7 @@ public class Controller {
 
   /*获得阿里云实例状态*/
   @GetMapping(path = "/api/aliyun/Instance")
-  public ResultWrapper<Instance> AliyunInstance() {
+  public ResultWrapper<Instance> aliyunInstance() {
     eventBus.post(new ActionEvent() {{
       setAction(ActionEventType.ALI_INSTANCE_REFRESH);
     }});
@@ -58,7 +63,7 @@ public class Controller {
 
   /*创建一个阿里云实例*/
   @PostMapping(path = "/api/aliyun/Instance")
-  public ResultWrapper<Instance> AliyunCreateInstance() {
+  public ResultWrapper<Instance> aliyunCreateInstance() {
     eventBus.post(new ActionEvent() {{
       setAction(ActionEventType.ALI_CREATE_INSTANCE);
     }});
@@ -77,7 +82,7 @@ public class Controller {
 
   /*移除阿里云实例*/
   @DeleteMapping(path = "/api/aliyun/Instance")
-  public ResultWrapper<Instance> AliyunReleaseInstance() {
+  public ResultWrapper<Instance> aliyunReleaseInstance() {
     eventBus.post(new ActionEvent() {{
       setAction(ActionEventType.ALI_RELEASE_INSTANCE);
     }});

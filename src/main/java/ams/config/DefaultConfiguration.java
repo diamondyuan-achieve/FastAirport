@@ -18,7 +18,9 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 
-
+/**
+ * @author DiamondYuan
+ */
 @Configuration
 @EnableAsync
 public class DefaultConfiguration {

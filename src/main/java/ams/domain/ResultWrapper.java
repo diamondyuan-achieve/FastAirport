@@ -3,7 +3,9 @@ package ams.domain;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
+/**
+ * @author DiamondYuan
+ */
 @Data
 @NoArgsConstructor
 public class ResultWrapper<T> {

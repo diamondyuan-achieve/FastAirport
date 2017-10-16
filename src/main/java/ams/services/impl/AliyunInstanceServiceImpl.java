@@ -19,9 +19,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * @author DiamondYuan
+ */
 @Component
 @Slf4j
-public class AliyunInstanceService implements InstanceService {
+public class AliyunInstanceServiceImpl implements InstanceService {
 
 
   private static final String INSTALL_DOCKER = "curl -s https://get.docker.com/ | sudo sh";
@@ -36,14 +39,14 @@ public class AliyunInstanceService implements InstanceService {
   private static final String DEFAULT_CIDR_BLOCK = "172.31.99.0/24";
   private static final String DEFAULT_IMAGE_ID = "ubuntu_16_0402_64_40G_alibase_20170711.vhd";
   private static final String DEFAULT_INSTALCE_TYPE = "ecs.xn4.small";
-  private static final int scalingGroupMaxSize = 1;
-  private static final int scalingGroupMinSize = 0;
+  private static final int SCALING_GROUP_MAX_SIZE = 1;
+  private static final int SCALING_GROUP_MIN_SIZE = 0;
 
 
   private Config config;
 
   @Value("config/fastAirport.conf")
-  private String DEFAULT_CONFIG_PATH;
+  private String defaultConfigPath;
   private Instance instance;
   private IAcsClient iAcsClient;
 
@@ -63,8 +66,9 @@ public class AliyunInstanceService implements InstanceService {
   }
 
 
+  @Override
   public void instanceInit() throws JSchException, IOException, ClientException, InterruptedException {
-    if (instance.getStatus().equals("Running") && instance.getIp() != null) {
+    if ("Running".equals(instance.getStatus()) && instance.getIp() != null) {
 
       Shadow shadow = new Shadow() {{
         setPort(new Random().nextInt(10000) + 10000);
@@ -90,10 +94,10 @@ public class AliyunInstanceService implements InstanceService {
         setCommand(PULL_SS_IMAGE);
         setStatus(DiamondUtils.execCommand(session, PULL_SS_IMAGE));
       }});
-      String ss_command = String.format(SS_RUN, shadow.getPort(), shadow.getPort(), shadow.getPort(), shadow.getMethod(), shadow.getPassword());
+      String ssCommand = String.format(SS_RUN, shadow.getPort(), shadow.getPort(), shadow.getPort(), shadow.getMethod(), shadow.getPassword());
       commandList.add(new Command() {{
-        setCommand(ss_command);
-        setStatus(DiamondUtils.execCommand(session, ss_command));
+        setCommand(ssCommand);
+        setStatus(DiamondUtils.execCommand(session, ssCommand));
       }});
       instance.setCommand(commandList);
       instance.setShadowConf(shadow);
@@ -103,12 +107,14 @@ public class AliyunInstanceService implements InstanceService {
 
 
   /*创建一个实例*/
+  @Override
   public void createInstance() throws ClientException {
     instance.setExist(true);
     execRule(config.getScalingAddRuleAri());
   }
 
   /*移除一个实例*/
+  @Override
   public void releaseInstance() throws ClientException {
     instance.setExist(false);
     execRule(config.getScalingRemoveRuleAri());
@@ -116,6 +122,7 @@ public class AliyunInstanceService implements InstanceService {
 
 
   /*刷新实例状态*/
+  @Override
   public void refreshInstance() throws ClientException {
     String instanceId = getInstanceId(config.getScalingGroupId(), config.getScalingConfigurationId());
     if (instanceId == null) {
@@ -175,6 +182,7 @@ public class AliyunInstanceService implements InstanceService {
   * 8.创建SSH Key并且保存在本地
   * 9.把上面的数据保存好，并且写入配置文件
   * */
+  @Override
   public void serviceInit() throws ClientException, IOException, InterruptedException {
     String vpcId = createVpc();
     config.setVpcId(vpcId);
@@ -195,7 +203,7 @@ public class AliyunInstanceService implements InstanceService {
     config.setScalingRemoveRuleAri(scalingRemoveRule.getScalingRuleAri());
     enableScalingGroup(scalingGroupId, scalingConfigurationId);
     authorizeSecurityGroup(securityGroupId);
-    AuthorizeSecurityGroupEgress(securityGroupId);
+    authorizeSecurityGroupEgress(securityGroupId);
     KeyPair keyPair = createPrivateKey();
     config.setPairName(keyPair.getName());
     config.setKeyPairPath(keyPair.getPath());
@@ -209,23 +217,27 @@ public class AliyunInstanceService implements InstanceService {
     properties.put("scalingRemoveRuleAri", scalingRemoveRule.getScalingRuleAri());
     properties.put("pairName", keyPair.getName());
     properties.put("keyPairPath", keyPair.getPath());
-    properties.store(new FileOutputStream(new File(DEFAULT_CONFIG_PATH)), null);
+    properties.store(new FileOutputStream(new File(defaultConfigPath)), null);
     config.setStatus("ok");
   }
 
 
-  /*建立专有网络 返回专有网络的id
-  *create VPC and return id of VPC*/
+  /**
+   * 建立专有网络 返回专有网络的ID
+   * create VPC and return id of VPC
+   */
   private String createVpc() throws ClientException {
     CreateVpcRequest createVpcRequest = new CreateVpcRequest();
     CreateVpcResponse response = iAcsClient.getAcsResponse(createVpcRequest);
     return response.getVpcId();
   }
 
-  /*在指定的VPC上创建交换机 返回交换机ID*/
-  private String createVSwitch(String VpcId) throws ClientException {
+  /**
+   * 在指定的VPC上创建交换机 返回交换机ID
+   */
+  private String createVSwitch(String vpcId) throws ClientException {
     CreateVSwitchRequest createVpcRequest = new CreateVSwitchRequest();
-    createVpcRequest.setVpcId(VpcId);
+    createVpcRequest.setVpcId(vpcId);
     createVpcRequest.setCidrBlock(DEFAULT_CIDR_BLOCK);
     createVpcRequest.setZoneId(VPC_SWITCH_ZONE_ID);
     CreateVSwitchResponse response = iAcsClient.getAcsResponse(createVpcRequest);
@@ -233,13 +245,13 @@ public class AliyunInstanceService implements InstanceService {
   }
 
 
-  private ScalingRule createAddScalingRule(String ScalingGroupId) throws ClientException {
-    return createTotalCapacityRule(ScalingGroupId, 1);
+  private ScalingRule createAddScalingRule(String scalingGroupId) throws ClientException {
+    return createTotalCapacityRule(scalingGroupId, 1);
   }
 
-  private ScalingRule createTotalCapacityRule(String ScalingGroupId, int count) throws ClientException {
+  private ScalingRule createTotalCapacityRule(String scalingGroupId, int count) throws ClientException {
     CreateScalingRuleRequest createScalingRuleRequest = new CreateScalingRuleRequest();
-    createScalingRuleRequest.setScalingGroupId(ScalingGroupId);
+    createScalingRuleRequest.setScalingGroupId(scalingGroupId);
     createScalingRuleRequest.setAdjustmentType("TotalCapacity");
     createScalingRuleRequest.setAdjustmentValue(count);
     CreateScalingRuleResponse response = iAcsClient.getAcsResponse(createScalingRuleRequest);
@@ -249,8 +261,8 @@ public class AliyunInstanceService implements InstanceService {
     }};
   }
 
-  private ScalingRule createRemoveScalingRule(String ScalingGroupId) throws ClientException {
-    return createTotalCapacityRule(ScalingGroupId, 0);
+  private ScalingRule createRemoveScalingRule(String scalingGroupId) throws ClientException {
+    return createTotalCapacityRule(scalingGroupId, 0);
   }
 
 
@@ -262,7 +274,11 @@ public class AliyunInstanceService implements InstanceService {
   }
 
 
-  /*根据安全组名称创建安全组*/
+  /**
+   *
+   * 根据安全组名称创建安全组
+   *
+   */
   private String createSecurityGroup(String vpvId) throws ClientException {
     CreateSecurityGroupRequest createSecurityGroup = new CreateSecurityGroupRequest();
     createSecurityGroup.setVpcId(vpvId);
@@ -293,7 +309,7 @@ public class AliyunInstanceService implements InstanceService {
     iAcsClient.getAcsResponse(authorizeSecurityGroupRequest);
   }
 
-  private void AuthorizeSecurityGroupEgress(String securityGroupId) throws ClientException {
+  private void authorizeSecurityGroupEgress(String securityGroupId) throws ClientException {
     AuthorizeSecurityGroupEgressRequest authorizeSecurityGroupEgressRequest = new AuthorizeSecurityGroupEgressRequest();
     authorizeSecurityGroupEgressRequest.setSecurityGroupId(securityGroupId);
     authorizeSecurityGroupEgressRequest.setDestCidrIp("0.0.0.0/0");
@@ -302,11 +318,15 @@ public class AliyunInstanceService implements InstanceService {
     iAcsClient.getAcsResponse(authorizeSecurityGroupEgressRequest);
   }
 
-  /*根据伸缩组名称创建伸缩组 返回伸缩组id*/
+  /**
+   *
+   * 根据伸缩组名称创建伸缩组 返回伸缩组id
+   *
+   */
   private String createScalingGroup(String vSwitchID) throws ClientException {
     CreateScalingGroupRequest createScalingGroupRequest = new CreateScalingGroupRequest();
-    createScalingGroupRequest.setMaxSize(scalingGroupMaxSize);
-    createScalingGroupRequest.setMinSize(scalingGroupMinSize);
+    createScalingGroupRequest.setMaxSize(SCALING_GROUP_MAX_SIZE);
+    createScalingGroupRequest.setMinSize(SCALING_GROUP_MIN_SIZE);
     createScalingGroupRequest.setVSwitchId(vSwitchID);
     CreateScalingGroupResponse response = iAcsClient.getAcsResponse(createScalingGroupRequest);
     return response.getScalingGroupId();
@@ -332,7 +352,7 @@ public class AliyunInstanceService implements InstanceService {
     while (!(pairName.charAt(0) < '0' || pairName.charAt(0) > '9')) {
       pairName = UUID.randomUUID().toString();
     }
-    File sshFolder = new File(DEFAULT_CONFIG_PATH).getParentFile();
+    File sshFolder = new File(defaultConfigPath).getParentFile();
     if (!sshFolder.exists()) {
       if (sshFolder.mkdir()) {
         log.debug("成功创建文件夹");

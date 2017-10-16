@@ -4,7 +4,7 @@ import ams.domain.Config;
 import ams.domain.Instance;
 import ams.event.domain.ActionEvent;
 import ams.services.InstanceService;
-import ams.services.impl.AliyunInstanceService;
+import ams.services.impl.AliyunInstanceServiceImpl;
 import com.aliyuncs.exceptions.ClientException;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -14,6 +14,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+
+/**
+ * @author DiamondYuan
+ */
 @Component
 public class AliyunEventListener {
 
@@ -26,7 +30,10 @@ public class AliyunEventListener {
   @Autowired
   public AliyunEventListener(EventBus configEventBus) {
     this.eventBus = configEventBus;
-    eventBus.register(this); // register this instance with the event bus so it receives any events
+    /**
+     * register this instance with the event bus so it receives any events
+     */
+    eventBus.register(this);
   }
 
   @Autowired
@@ -40,7 +47,7 @@ public class AliyunEventListener {
   }
 
   @Autowired
-  public void setService(AliyunInstanceService instanceService) {
+  public void setService(AliyunInstanceServiceImpl instanceService) {
     this.instanceService = instanceService;
   }
 

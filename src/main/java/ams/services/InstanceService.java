@@ -6,6 +6,9 @@ import com.jcraft.jsch.JSchException;
 
 import java.io.IOException;
 
+/**
+ * @author DiamondYuan
+ */
 public interface InstanceService {
 
   void serviceInit() throws IOException, ClientException, InterruptedException;

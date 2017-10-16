@@ -4,6 +4,9 @@ import com.jcraft.jsch.*;
 
 import java.io.*;
 
+/**
+ * @author DiamondYuan
+ */
 public class DiamondUtils {
 
 

@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class Config {
   private boolean firstLoad;
-  private String Status;
+  private String status;
   private String vpcId;
   private String switchId;
   private String scalingGroupId;
