@@ -4,6 +4,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * @author DiamondYuan
+ */
 @Data
 public class Instance {
   private Boolean exist;

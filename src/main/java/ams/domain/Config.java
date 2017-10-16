@@ -2,6 +2,9 @@ package ams.domain;
 
 import lombok.Data;
 
+/**
+ * @author DiamondYuan
+ */
 @Data
 public class Config {
   private boolean firstLoad;
