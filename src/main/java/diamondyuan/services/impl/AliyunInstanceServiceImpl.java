@@ -1,6 +1,13 @@
 package diamondyuan.services.impl;
 
-import diamondyuan.domain.*;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.ecs.model.v20140526.*;
+import com.aliyuncs.ess.model.v20140828.*;
+import com.aliyuncs.exceptions.ClientException;
+import diamondyuan.domain.Config;
+import diamondyuan.domain.Instance;
+import diamondyuan.domain.KeyPair;
+import diamondyuan.domain.ScalingRule;
 import diamondyuan.domain.aliyun.ScalingInstance;
 import diamondyuan.domain.consts.ConfigConstants;
 import diamondyuan.domain.enums.AliyunInstanceTypeEnum;
@@ -8,17 +15,15 @@ import diamondyuan.domain.enums.ConfigStatusEnum;
 import diamondyuan.services.ConfigService;
 import diamondyuan.services.DiamondUtils;
 import diamondyuan.services.InstanceService;
-import com.aliyuncs.IAcsClient;
-import com.aliyuncs.ecs.model.v20140526.*;
-import com.aliyuncs.ess.model.v20140828.*;
-import com.aliyuncs.exceptions.ClientException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +62,7 @@ public class AliyunInstanceServiceImpl implements InstanceService {
 
   @Override
   public List<Instance> getInstances() throws ClientException, IOException {
+
     Config config = configService.loadConfig();
     if (config.getScalingGroupId() == null || config.getScalingConfigurationId() == null) {
       return Collections.emptyList();
@@ -79,6 +85,8 @@ public class AliyunInstanceServiceImpl implements InstanceService {
       }
 
     }}).collect(Collectors.toList());
+
+
   }
 
 

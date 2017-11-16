@@ -1,14 +1,14 @@
 package diamondyuan.api;
 
 
-import diamondyuan.domain.*;
-import diamondyuan.event.domain.ActionEvent;
-import diamondyuan.domain.enums.ActionEventTypeEnum;
-import diamondyuan.services.ConfigService;
-import diamondyuan.services.InstanceService;
 import com.aliyuncs.exceptions.ClientException;
 import com.google.common.eventbus.EventBus;
 import com.jcraft.jsch.JSchException;
+import diamondyuan.domain.*;
+import diamondyuan.domain.enums.ActionEventTypeEnum;
+import diamondyuan.event.domain.ActionEvent;
+import diamondyuan.services.ConfigService;
+import diamondyuan.services.InstanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,7 +49,7 @@ public class Controller {
   }
 
   /*获得阿里云实例状态*/
-  @GetMapping(path = "/api/v1/aliyun/Instance")
+  @GetMapping(path = "/api/v1/aliyun/Instances")
   public ResultWrapper<ListResult<Instance>> aliyunInstance() throws GenericException, ClientException, InterruptedException, IOException {
     return ListResult.of(instanceService.getInstances());
   }

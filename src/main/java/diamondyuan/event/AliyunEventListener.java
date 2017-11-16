@@ -1,15 +1,15 @@
 package diamondyuan.event;
 
+import com.aliyuncs.exceptions.ClientException;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+import com.jcraft.jsch.JSchException;
 import diamondyuan.domain.Config;
 import diamondyuan.domain.enums.ActionEventTypeEnum;
 import diamondyuan.domain.enums.ConfigStatusEnum;
 import diamondyuan.event.domain.ActionEvent;
 import diamondyuan.services.ConfigService;
 import diamondyuan.services.InstanceService;
-import com.aliyuncs.exceptions.ClientException;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
-import com.jcraft.jsch.JSchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,13 +49,19 @@ public class AliyunEventListener {
   }
 
 
-
-
   @Subscribe
   public void createInstanceEventSubscriber(ActionEvent e) throws JSchException, ClientException, IOException, InterruptedException {
     if (e == null || !e.getAction().equals(ActionEventTypeEnum.ALI_CREATE_INSTANCE)) {
       return;
     }
     instanceService.createInstance();
+  }
+
+  @Subscribe
+  public void releaseInstanceEventSubscriber(ActionEvent e) throws JSchException, ClientException, IOException, InterruptedException {
+    if (e == null || !e.getAction().equals(ActionEventTypeEnum.ALI_RELEASE_INSTANCE)) {
+      return;
+    }
+    instanceService.releaseInstance();
   }
 }

@@ -24,6 +24,50 @@ function connect() {
     });
 }
 
+function aliyunInit() {
+    var configJson = $.ajax({url: "/api/v1/aliyun", async: false});
+}
+
+function getInstances() {
+    var response = JSON.parse($.ajax({url: "/api/v1/aliyun/Instances", async: false}).responseText);
+
+    // if(response.code ==="1000000"){
+
+    // }
+    var table = $("#instanceTable");
+    table.empty();
+    instanceList = response.data.list;
+    if (instanceList.length > 0) {
+
+        for (var i in instanceList) {
+            instance = instanceList[i];
+            table.append("<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td></tr>".format(instance.id, instance.status, instance.ip, instance.regionId));
+            console.log(instance);
+        }
+
+    }
+
+    //
+    // $( "#instanceTable" ),
+}
+
+function createInstance() {
+    var options = {
+        type: 'POST',
+        url: "/api/v1/aliyun/Instance"
+    };
+    $.ajax(options);
+}
+
+function removeInstance() {
+    var options = {
+        type: 'DELETE',
+        url: "/api/v1/aliyun/Instance"
+    };
+    $.ajax(options);
+}
+
+
 function disconnect() {
     if (stompClient !== null) {
         stompClient.disconnect();
@@ -42,10 +86,51 @@ function showGreeting(message) {
 
 $(function () {
     $("form").on('submit', function (e) {
+        console.log(e);
         e.preventDefault();
     });
-    $( "#connect" ).click(function() { connect(); });
-    $( "#disconnect" ).click(function() { disconnect(); });
-    $( "#send" ).click(function() { sendName(); });
+    $("#connect").click(function () {
+        connect();
+    });
+    $("#disconnect").click(function () {
+        disconnect();
+    });
+    $("#send").click(function () {
+        sendName();
+    });
+    $("#aliyunInit").click(function () {
+        aliyunInit()
+    });
+    $("#getInstances").click(function () {
+        getInstances()
+    });
+    $("#createInstance").click(function () {
+        createInstance()
+    });
+    $("#removeInstance").click(function () {
+        removeInstance()
+    });
 });
 
+String.prototype.format = function (args) {
+    var result = this;
+    if (arguments.length > 0) {
+        if (arguments.length == 1 && typeof (args) == "object") {
+            for (var key in args) {
+                if (args[key] != undefined) {
+                    var reg = new RegExp("({" + key + "})", "g");
+                    result = result.replace(reg, args[key]);
+                }
+            }
+        }
+        else {
+            for (var i = 0; i < arguments.length; i++) {
+                if (arguments[i] != undefined) {
+                    var reg = new RegExp("({[" + i + "]})", "g");
+                    result = result.replace(reg, arguments[i]);
+                }
+            }
+        }
+    }
+    return result;
+}
