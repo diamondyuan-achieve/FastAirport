@@ -1,8 +1,8 @@
 package diamondyuan.services;
 
 
-import diamondyuan.domain.Instance;
 import com.aliyuncs.exceptions.ClientException;
+import diamondyuan.domain.Instance;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,6 +30,7 @@ public interface InstanceService {
    */
   void releaseInstance() throws ClientException,IOException;
 
+  void attachKeyPair(String instanceID) throws ClientException, IOException;
 
   List<Instance> getInstances() throws ClientException,IOException;
 

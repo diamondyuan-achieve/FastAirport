@@ -7,7 +7,7 @@ function getInstances() {
         for (var i in instanceList) {
             instance = instanceList[i];
             table.append("<tr>");
-            table.append("<td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td>".format(instance.id, instance.status, instance.ip, instance.regionId));
+            table.append("<td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td>".format(instance.id, instance.status, instance.ip, instance.regionId, instance.keyPairName));
             table.append("<td><button class='btn btn-default'><a href=\"instance?id={0}\">操作</a></button></td>".format(instance.id));
             table.append("<tr>");
         }

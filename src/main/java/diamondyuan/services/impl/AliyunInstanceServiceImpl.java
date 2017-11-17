@@ -78,6 +78,7 @@ public class AliyunInstanceServiceImpl implements InstanceService {
     DescribeInstancesResponse response = iAcsClient.getAcsResponse(instancesRequest);
     return response.getInstances().stream().map(o -> new Instance() {{
       setStatus(o.getStatus());
+      setKeyPairName(o.getKeyPairName());
       setId(o.getInstanceId());
       setRegionId(o.getRegionId());
       if (o.getPublicIpAddress().size() > 0) {
@@ -90,12 +91,19 @@ public class AliyunInstanceServiceImpl implements InstanceService {
   }
 
 
-  private String attachKeyPair(String instanceID, String attachKey) throws ClientException {
+  public void attachKeyPair(String instanceID) throws ClientException, IOException {
+    Config config = configService.loadConfig();
+    if (config.getPairName() == null) {
+      return;
+    }
+    attachKeyPair(instanceID, config.getPairName());
+  }
+
+  private void attachKeyPair(String instanceID, String attachKey) throws ClientException {
     AttachKeyPairRequest request = new AttachKeyPairRequest();
     request.setKeyPairName(attachKey);
     request.setInstanceIds(String.format("[\"%s\"]", instanceID));
-    AttachKeyPairResponse response = iAcsClient.getAcsResponse(request);
-    return response.getFailCount();
+    iAcsClient.getAcsResponse(request);
   }
 
 

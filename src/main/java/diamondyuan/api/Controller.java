@@ -9,15 +9,13 @@ import diamondyuan.domain.enums.ActionEventTypeEnum;
 import diamondyuan.event.domain.ActionEvent;
 import diamondyuan.services.ConfigService;
 import diamondyuan.services.InstanceService;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-
-import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
+import java.util.List;
 
 /**
  * Controller
@@ -38,8 +36,6 @@ public class Controller {
     this.configService = configService;
     this.eventBus = eventBus;
   }
-
-
 
   /*阿里云初始化*/
   @GetMapping(path = "/api/v1/aliyun/config")
@@ -74,12 +70,18 @@ public class Controller {
 
 
   /*阿里云实例进行初始化*/
-  @GetMapping(path = "/api/v1/aliyun/Instance/init")
-  public ResultWrapper<ListResult<Instance>> installDocker() throws JSchException, IOException, ClientException, InterruptedException {
-    eventBus.post(new ActionEvent() {{
-      setAction(ActionEventTypeEnum.ALI_INSTANCE_INIT);
-    }});
-    return ListResult.of(instanceService.getInstances());
+  @PutMapping(path = "/api/v1/aliyun/Instance/{instanceId}/keyPair")
+  @ApiOperation(value = "为实例绑定SSH密钥", produces = "application/json")
+  public ResultWrapper<ListResult<Instance>> setKeyPair(
+    @ApiParam(value = "实例Id", required = true) @PathVariable(value = "instanceId") String instanceId
+  ) throws JSchException, IOException, ClientException, InterruptedException {
+    List<Instance> instanceList = instanceService.getInstances();
+    if (instanceList == null || instanceList.size() == 0 ||
+      instanceList.stream().filter((Instance o) -> o.getId().equals(instanceId) && o.getKeyPairName() == null).count() == 0) {
+      return ListResult.of(instanceList);
+    }
+    instanceService.attachKeyPair(instanceId);
+    return ListResult.of(instanceList);
   }
 
   /*移除阿里云实例*/
@@ -90,8 +92,6 @@ public class Controller {
     }});
     return ListResult.of(instanceService.getInstances());
   }
-
-
 
 
 }

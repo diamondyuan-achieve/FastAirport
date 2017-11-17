@@ -12,5 +12,6 @@ public class Instance {
   private String id;
   private String status;
   private String regionId;
+  private String keyPairName;
 
 }
