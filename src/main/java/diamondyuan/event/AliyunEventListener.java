@@ -10,6 +10,7 @@ import diamondyuan.domain.enums.ConfigStatusEnum;
 import diamondyuan.event.domain.ActionEvent;
 import diamondyuan.services.ConfigService;
 import diamondyuan.services.InstanceService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ import java.io.IOException;
  * @author DiamondYuan
  */
 @Component
+@Slf4j
 public class AliyunEventListener {
 
   private final InstanceService instanceService;
@@ -39,6 +41,7 @@ public class AliyunEventListener {
     if (e == null || !e.getAction().equals(ActionEventTypeEnum.ALI_INIT)) {
       return;
     }
+    log.debug("获取阿里云初始化时间");
     Config config = configService.loadConfig();
     if (!config.getConfigStatus().equals(ConfigStatusEnum.EMPTY)) {
       return;

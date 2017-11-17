@@ -56,13 +56,17 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-aop')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     compile('org.springframework.boot:spring-boot-starter-actuator')
+    compile('org.springframework.boot:spring-boot-starter-thymeleaf')
     testCompile group: 'org.mockito', name: 'mockito-core', version: '2.12.0'
     compile("org.springframework.boot:spring-boot-starter-websocket")
     compile("org.webjars:webjars-locator:0.32-1")
-    compile("org.webjars:sockjs-client:1.1.4")
-    compile("org.webjars:stomp-websocket:2.3.4")
+    compile group: 'org.webjars', name: 'sockjs-client', version: '1.1.2'
+    compile group: 'org.webjars.bower', name: 'stomp-websocket', version: '2.3.4'
     compile("org.webjars:bootstrap:3.3.7")
     compile("org.webjars:jquery:3.2.1")
+    compile('net.sourceforge.nekohtml:nekohtml:1.9.22')
+
+
 
 }
 

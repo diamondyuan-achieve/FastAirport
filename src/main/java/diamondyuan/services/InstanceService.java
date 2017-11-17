@@ -31,17 +31,7 @@ public interface InstanceService {
   void releaseInstance() throws ClientException,IOException;
 
 
-
-
-
   List<Instance> getInstances() throws ClientException,IOException;
-
-//
-//  /**
-//   * 实例初始化
-//   *
-//   */
-//  void instanceInit() throws JSchException, IOException, ClientException, InterruptedException;
 
 
 }

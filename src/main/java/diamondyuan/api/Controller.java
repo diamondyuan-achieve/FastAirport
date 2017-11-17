@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 
+import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
+
 /**
  * Controller
  *
@@ -37,6 +39,13 @@ public class Controller {
     this.eventBus = eventBus;
   }
 
+
+
+  /*阿里云初始化*/
+  @GetMapping(path = "/api/v1/aliyun/config")
+  public ResultWrapper<Config> config() throws GenericException, ClientException, InterruptedException, IOException {
+    return new ResultWrapper<>(configService.loadConfig());
+  }
 
 
   /*阿里云初始化*/
@@ -81,6 +90,8 @@ public class Controller {
     }});
     return ListResult.of(instanceService.getInstances());
   }
+
+
 
 
 }
