@@ -2,13 +2,18 @@ package diamondyuan.services.impl;
 
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.ecs.model.v20140526.*;
+import com.aliyuncs.ecs.model.v20140526.DescribeRegionsRequest;
+import com.aliyuncs.ecs.model.v20140526.DescribeRegionsResponse;
 import com.aliyuncs.ess.model.v20140828.*;
 import com.aliyuncs.exceptions.ClientException;
+import com.aliyuncs.profile.DefaultProfile;
 import diamondyuan.domain.Config;
 import diamondyuan.domain.Instance;
 import diamondyuan.domain.KeyPair;
 import diamondyuan.domain.ScalingRule;
+import diamondyuan.domain.aliyun.Region;
 import diamondyuan.domain.aliyun.ScalingInstance;
+import diamondyuan.domain.aliyun.Zone;
 import diamondyuan.domain.consts.ConfigConstants;
 import diamondyuan.domain.enums.AliyunInstanceTypeEnum;
 import diamondyuan.domain.enums.ConfigStatusEnum;
@@ -44,6 +49,32 @@ public class AliyunInstanceServiceImpl implements InstanceService {
     this.iAcsClient = iAcsClient;
   }
 
+
+  @Override
+  public List<Zone> getZones(String regionId) throws ClientException {
+    DescribeZonesRequest describeZonesRequest = new DescribeZonesRequest();
+    DescribeZonesResponse response = iAcsClient.getAcsResponse(describeZonesRequest, DefaultProfile.getProfile(regionId));
+    if (response == null || response.getZones() == null || response.getZones().size() == 0) {
+      return Collections.emptyList();
+    }
+    return response.getZones().stream().map(o -> new Zone() {{
+      setLocalName(o.getLocalName());
+      setZoneId(o.getZoneId());
+    }}).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Region> getRegions() throws ClientException {
+    DescribeRegionsRequest regionsRequest = new DescribeRegionsRequest();
+    DescribeRegionsResponse response = iAcsClient.getAcsResponse(regionsRequest);
+    if (response == null || response.getRegions() == null || response.getRegions().size() == 0) {
+      return Collections.emptyList();
+    }
+    return response.getRegions().stream().map(o -> new Region() {{
+      setLocalName(o.getLocalName());
+      setRegionId(o.getRegionId());
+    }}).collect(Collectors.toList());
+  }
 
   /*创建一个实例*/
   @Override
@@ -86,10 +117,7 @@ public class AliyunInstanceServiceImpl implements InstanceService {
       }
 
     }}).collect(Collectors.toList());
-
-
   }
-
 
   public void attachKeyPair(String instanceID) throws ClientException, IOException {
     Config config = configService.loadConfig();
@@ -136,6 +164,8 @@ public class AliyunInstanceServiceImpl implements InstanceService {
     if (!config.getConfigStatus().equals(ConfigStatusEnum.PENDING)) {
       return;
     }
+
+
     KeyPair keyPair = createPrivateKey();
     config.setPairName(keyPair.getName());
     config.setKeyPairPath(keyPair.getPath());
@@ -199,7 +229,8 @@ public class AliyunInstanceServiceImpl implements InstanceService {
   /**
    * 在指定的VPC上创建交换机 返回交换机ID
    */
-  private String createVSwitch(String vpcId) throws ClientException, InterruptedException {
+  private String createVSwitch(String vpcId) throws ClientException, IOException, InterruptedException {
+    Config config = configService.loadConfig();
     String vpcStatus = getVpcStatus(vpcId);
     if (!vpcStatus.equals("Available")) {
       Thread.sleep(1000);
@@ -209,7 +240,7 @@ public class AliyunInstanceServiceImpl implements InstanceService {
     CreateVSwitchRequest createVpcRequest = new CreateVSwitchRequest();
     createVpcRequest.setVpcId(vpcId);
     createVpcRequest.setCidrBlock(ConfigConstants.DEFAULT_CIDR_BLOCK);
-    createVpcRequest.setZoneId(ConfigConstants.VPC_SWITCH_ZONE_ID);
+    createVpcRequest.setZoneId(config.getZoneId());
     CreateVSwitchResponse response = iAcsClient.getAcsResponse(createVpcRequest);
     return response.getVSwitchId();
   }

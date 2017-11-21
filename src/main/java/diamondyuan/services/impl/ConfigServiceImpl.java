@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+
 @Component
 @Slf4j
 public class ConfigServiceImpl implements ConfigService {
@@ -42,9 +43,9 @@ public class ConfigServiceImpl implements ConfigService {
         setConfigStatus(ConfigStatusEnum.EMPTY);
       }};
       saveConfig(config);
-      return config;
+      return addZone(config);
     }
-    return new Config() {{
+    return addZone(new Config() {{
       setConfigStatus(ConfigStatusEnum.valueOf(properties.getProperty("configStatus")));
       setVpcId(properties.getProperty("vpcId"));
       setSwitchId(properties.getProperty("switchId"));
@@ -55,7 +56,18 @@ public class ConfigServiceImpl implements ConfigService {
       setScalingRemoveRuleAri(properties.getProperty("scalingRemoveRuleAri"));
       setPairName(properties.getProperty("pairName"));
       setKeyPairPath(properties.getProperty("keyPairPath"));
-    }};
+      setZoneId(properties.getProperty("zoneId"));
+      setRegionId(properties.getProperty("regionId"));
+    }});
+  }
+
+
+  private Config addZone(Config config) {
+    if (config.getRegionId() == null || config.getZoneId() == null) {
+      config.setRegionId(ConfigConstants.DEFAULT_REGION_ID);
+      config.setZoneId(ConfigConstants.DEFAULT_ZONE_ID);
+    }
+    return config;
   }
 
   public void saveConfig(Config config) throws IOException {
@@ -83,6 +95,12 @@ public class ConfigServiceImpl implements ConfigService {
       }
       if (config.getScalingRemoveRuleAri() != null) {
         put("scalingRemoveRuleAri", config.getScalingRemoveRuleAri());
+      }
+      if (config.getZoneId() != null) {
+        put("zoneId", config.getZoneId());
+      }
+      if (config.getRegionId() != null) {
+        put("regionId", config.getRegionId());
       }
       if (config.getPairName() != null) {
         put("pairName", config.getPairName());

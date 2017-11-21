@@ -1,22 +1,19 @@
 package diamondyuan.api;
 
 
-import com.aliyuncs.IAcsClient;
-import com.aliyuncs.ecs.model.v20140526.DescribeRegionsRequest;
-import com.aliyuncs.ecs.model.v20140526.DescribeRegionsResponse;
-import com.aliyuncs.ecs.model.v20140526.DescribeRenewalPriceRequest;
-import com.aliyuncs.ecs.model.v20140526.DescribeZonesRequest;
+
 import com.aliyuncs.exceptions.ClientException;
 import com.google.common.eventbus.EventBus;
 import com.jcraft.jsch.JSchException;
 import diamondyuan.domain.*;
+import diamondyuan.domain.aliyun.Region;
+import diamondyuan.domain.aliyun.Zone;
 import diamondyuan.domain.enums.ActionEventTypeEnum;
 import diamondyuan.event.domain.ActionEvent;
 import diamondyuan.services.ConfigService;
 import diamondyuan.services.InstanceService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.codehaus.groovy.control.customizers.builder.InlinedASTCustomizerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,10 +28,6 @@ import java.util.Objects;
  */
 @RestController
 public class Controller {
-
-
-  @Autowired
-  IAcsClient iAcsClient;
 
   private final InstanceService instanceService;
   private final EventBus eventBus;
@@ -107,31 +100,26 @@ public class Controller {
 
   /*移除阿里云实例*/
   @DeleteMapping(path = "/api/v1/aliyun/Instance")
-  public ResultWrapper<ListResult<Instance>> aliyunReleaseInstance() throws IOException, ClientException, InterruptedException {
+  public ResultWrapper<ListResult<Instance>> aliyunReleaseInstance() throws IOException, ClientException {
     eventBus.post(new ActionEvent() {{
       setAction(ActionEventTypeEnum.ALI_RELEASE_INSTANCE);
     }});
     return ListResult.of(instanceService.getInstances());
   }
 
-  @GetMapping(path = "/test")
-  public ResultWrapper test() throws ClientException {
-    DescribeRegionsRequest regionsRequest = new DescribeRegionsRequest();
-    DescribeRegionsResponse response = iAcsClient.getAcsResponse(regionsRequest);
-    response.getRegions().forEach(o -> {
-      System.out.println(o.getRegionId());
-      System.out.println(o.getLocalName());
-    });
 
-    DescribeZonesRequest describeZonesRequest = new DescribeZonesRequest();
-    iAcsClient.getAcsResponse(describeZonesRequest).getZones().forEach(o -> {
-      {
-        System.out.println(o.getZoneId());
-          System.out.println(o.getLocalName());
-      }
-    });
-    return null;
+  @GetMapping(path = "/api/v1/aliyun/zones/{regionId}")
+  public ResultWrapper<ListResult<Zone>> describeZones(
+    @ApiParam(value = "可用区Id", required = true) @PathVariable(value = "regionId") String regionId
+  ) throws ClientException {
+    return ListResult.of(instanceService.getZones(regionId));
   }
 
+
+  @GetMapping(path = "/api/v1/aliyun/regions")
+  public ResultWrapper<ListResult<Region>> describeRegions(
+  ) throws ClientException {
+    return ListResult.of(instanceService.getRegions());
+  }
 
 }

@@ -10,6 +10,8 @@ import lombok.Data;
 public class Config {
   private ConfigStatusEnum configStatus;
   private String vpcId;
+  private String regionId;
+  private String zoneId;
   private String switchId;
   private String scalingGroupId;
   private String securityGroupId;

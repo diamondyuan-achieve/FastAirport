@@ -3,6 +3,8 @@ package diamondyuan.services;
 
 import com.aliyuncs.exceptions.ClientException;
 import diamondyuan.domain.Instance;
+import diamondyuan.domain.aliyun.Region;
+import diamondyuan.domain.aliyun.Zone;
 
 import java.io.IOException;
 import java.util.List;
@@ -35,4 +37,7 @@ public interface InstanceService {
   List<Instance> getInstances() throws ClientException,IOException;
 
 
+  List<Zone> getZones(String regionId) throws ClientException;
+
+  List<Region> getRegions() throws ClientException;
 }
