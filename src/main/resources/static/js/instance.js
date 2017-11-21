@@ -8,7 +8,23 @@ function pageInit() {
         alertAndBackToHome("请输入实例ID")
     }
     instanceId = id;
-    $("#instanceId").html("实例id:{0}".format(id))
+    var response = JSON.parse($.ajax({url: "/api/v1/aliyun/Instances/" + instanceId, async: false}).responseText);
+    if (response.data === null) {
+        alertAndBackToHome("实例不存在")
+    }
+    instance = response.data;
+    $("#instanceId").html("实例id:{0} <br>ip:{1} <br>   status{2}  <br>  key:{3}".format(instance.id, instance.ip, instance.status, instance.keyPairName))
+
+}
+
+
+function attachKeyPairButton() {
+    var options = {
+        type: 'PUT',
+        url: "/api/v1/aliyun/Instance/{0}/keyPair".format(getParameterByName('id'))
+    };
+    $.ajax(options);
+    $("#attachKeyPairButton").hide();
 }
 
 function alertAndBackToHome(message) {
@@ -59,9 +75,9 @@ function connect() {
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function (frame) {
         setConnected(true);
-        // stompClient.subscribe('/instance/{0}/message'.format(instanceId), function (greeting) {
-        //     showGreeting(JSON.parse(greeting.body).content);
-        // });
+        stompClient.subscribe('/topic/{0}'.format(instanceId), function (greeting) {
+            showGreeting(JSON.parse(greeting.body).content);
+        });
     });
 }
 
@@ -72,6 +88,9 @@ function showGreeting(message) {
 $(function () {
     $("form").on('submit', function (e) {
         e.preventDefault();
+    });
+    $("#attachKeyPairButton").click(function () {
+        attachKeyPairButton();
     });
     $("#connect").click(function () {
         connect();

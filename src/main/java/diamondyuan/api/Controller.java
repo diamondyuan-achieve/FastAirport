@@ -1,6 +1,11 @@
 package diamondyuan.api;
 
 
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.ecs.model.v20140526.DescribeRegionsRequest;
+import com.aliyuncs.ecs.model.v20140526.DescribeRegionsResponse;
+import com.aliyuncs.ecs.model.v20140526.DescribeRenewalPriceRequest;
+import com.aliyuncs.ecs.model.v20140526.DescribeZonesRequest;
 import com.aliyuncs.exceptions.ClientException;
 import com.google.common.eventbus.EventBus;
 import com.jcraft.jsch.JSchException;
@@ -11,11 +16,13 @@ import diamondyuan.services.ConfigService;
 import diamondyuan.services.InstanceService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.codehaus.groovy.control.customizers.builder.InlinedASTCustomizerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Controller
@@ -25,6 +32,9 @@ import java.util.List;
 @RestController
 public class Controller {
 
+
+  @Autowired
+  IAcsClient iAcsClient;
 
   private final InstanceService instanceService;
   private final EventBus eventBus;
@@ -59,6 +69,17 @@ public class Controller {
     return ListResult.of(instanceService.getInstances());
   }
 
+
+  /*获得阿里云实例状态*/
+  @GetMapping(path = "/api/v1/aliyun/Instances/{instanceId}")
+  public ResultWrapper<Instance> aliyunInstance(
+    @ApiParam(value = "实例Id", required = true) @PathVariable(value = "instanceId") String instanceId
+  ) throws GenericException, ClientException, InterruptedException, IOException {
+    Instance instance = instanceService.getInstances().stream().filter(o -> Objects.equals(o.getId(), instanceId)).findFirst().orElse(new Instance());
+    return new ResultWrapper<>(instance);
+  }
+
+
   /*创建一个阿里云实例*/
   @PostMapping(path = "/api/v1/aliyun/Instance")
   public ResultWrapper<ListResult<Instance>> aliyunCreateInstance() throws IOException, ClientException {
@@ -91,6 +112,25 @@ public class Controller {
       setAction(ActionEventTypeEnum.ALI_RELEASE_INSTANCE);
     }});
     return ListResult.of(instanceService.getInstances());
+  }
+
+  @GetMapping(path = "/test")
+  public ResultWrapper test() throws ClientException {
+    DescribeRegionsRequest regionsRequest = new DescribeRegionsRequest();
+    DescribeRegionsResponse response = iAcsClient.getAcsResponse(regionsRequest);
+    response.getRegions().forEach(o -> {
+      System.out.println(o.getRegionId());
+      System.out.println(o.getLocalName());
+    });
+
+    DescribeZonesRequest describeZonesRequest = new DescribeZonesRequest();
+    iAcsClient.getAcsResponse(describeZonesRequest).getZones().forEach(o -> {
+      {
+        System.out.println(o.getZoneId());
+          System.out.println(o.getLocalName());
+      }
+    });
+    return null;
   }
 
 

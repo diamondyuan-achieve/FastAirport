@@ -136,6 +136,9 @@ public class AliyunInstanceServiceImpl implements InstanceService {
     if (!config.getConfigStatus().equals(ConfigStatusEnum.PENDING)) {
       return;
     }
+    KeyPair keyPair = createPrivateKey();
+    config.setPairName(keyPair.getName());
+    config.setKeyPairPath(keyPair.getPath());
     String vpcId = createVpc();
     config.setVpcId(vpcId);
     configService.saveConfig(config);
@@ -150,7 +153,7 @@ public class AliyunInstanceServiceImpl implements InstanceService {
     configService.saveConfig(config);
     authorizeSecurityGroup(securityGroupId);
     authorizeSecurityGroupEgress(securityGroupId);
-    String scalingConfigurationId = createScalingConfiguration(scalingGroupId, securityGroupId);
+    String scalingConfigurationId = createScalingConfiguration(scalingGroupId, securityGroupId, config.getPairName());
     config.setScalingConfigurationId(scalingConfigurationId);
     configService.saveConfig(config);
     ScalingRule scalingAddRule = createAddScalingRule(scalingGroupId);
@@ -159,9 +162,6 @@ public class AliyunInstanceServiceImpl implements InstanceService {
     ScalingRule scalingRemoveRule = createRemoveScalingRule(scalingGroupId);
     config.setScalingRemoveRuleAri(scalingRemoveRule.getScalingRuleAri());
     enableScalingGroup(scalingGroupId, scalingConfigurationId);
-    KeyPair keyPair = createPrivateKey();
-    config.setPairName(keyPair.getName());
-    config.setKeyPairPath(keyPair.getPath());
     config.setConfigStatus(ConfigStatusEnum.ACTIVE);
     configService.saveConfig(config);
   }
@@ -291,7 +291,7 @@ public class AliyunInstanceServiceImpl implements InstanceService {
     return response.getSecurityGroupId();
   }
 
-  private String createScalingConfiguration(String scalingGroupId, String securityGroupId) throws ClientException {
+  private String createScalingConfiguration(String scalingGroupId, String securityGroupId, String keypairName) throws ClientException {
     CreateScalingConfigurationRequest createScalingConfigurationRequest = new CreateScalingConfigurationRequest();
     createScalingConfigurationRequest.setInstanceType(AliyunInstanceTypeEnum.ECS_XN4_SMALL.toString());
     createScalingConfigurationRequest.setImageId(getImageId());
@@ -301,6 +301,7 @@ public class AliyunInstanceServiceImpl implements InstanceService {
     createScalingConfigurationRequest.setIoOptimized("optimized");
     createScalingConfigurationRequest.setSecurityGroupId(securityGroupId);
     createScalingConfigurationRequest.setScalingGroupId(scalingGroupId);
+    createScalingConfigurationRequest.setKeyPairName(keypairName);
     CreateScalingConfigurationResponse response = iAcsClient.getAcsResponse(createScalingConfigurationRequest);
     return response.getScalingConfigurationId();
   }
