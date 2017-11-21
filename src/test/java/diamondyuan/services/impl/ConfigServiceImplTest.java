@@ -43,6 +43,8 @@ public class ConfigServiceImplTest {
       setScalingRemoveRuleAri(UUID.randomUUID().toString());
       setKeyPairPath(UUID.randomUUID().toString());
       setPairName(UUID.randomUUID().toString());
+      setZoneId(UUID.randomUUID().toString());
+      setRegionId(UUID.randomUUID().toString());
     }};
     configService.saveConfig(config);
     Config loadConfig = configService.loadConfig();

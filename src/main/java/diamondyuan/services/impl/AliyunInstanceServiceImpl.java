@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -383,15 +382,15 @@ public class AliyunInstanceServiceImpl implements InstanceService {
     while (!(pairName.charAt(0) < '0' || pairName.charAt(0) > '9')) {
       pairName = UUID.randomUUID().toString();
     }
-    File sshFolder = new File(ConfigConstants.KEY_PATH);
-    if (!sshFolder.exists()) {
-      if (sshFolder.mkdir()) {
-        log.debug("成功创建文件夹");
-      } else {
-        log.error("创建文件失败");
-      }
-    }
-    String finalPairPath = String.format("%s/%s", sshFolder.getPath(), pairName);
+//    File sshFolder = new File(ConfigConstants.KEY_PATH);
+//    if (!sshFolder.exists()) {
+//      if (sshFolder.mkdir()) {
+//        log.debug("成功创建文件夹");
+//      } else {
+//        log.error("创建文件失败");
+//      }
+//    }
+    String finalPairPath = String.format("%s.pem", pairName);
     CreateKeyPairRequest request = new CreateKeyPairRequest();
     request.setKeyPairName(pairName);
     String privateKey = iAcsClient.getAcsResponse(request).getPrivateKeyBody();
