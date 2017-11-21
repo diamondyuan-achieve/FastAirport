@@ -42,7 +42,7 @@ public class DiamondUtils {
   }
 
 
-  public  int execCommand(String instanceId, Session session, String command) throws JSchException, IOException {
+  public int execCommand(String instanceId, Session session, String command) throws JSchException, IOException {
     Channel channel = session.openChannel("exec");
     ChannelExec channelExec = (ChannelExec) channel;
     channelExec.setCommand(command);
@@ -54,7 +54,7 @@ public class DiamondUtils {
     Message message = new Message();
     while ((line = input.readLine()) != null) {
       message.setContent(line);
-      template.convertAndSend("/topic/" + instanceId,message);
+      template.convertAndSend("/topic/" + instanceId, message);
       System.out.println(line);
     }
     while (!channelExec.isClosed()) {

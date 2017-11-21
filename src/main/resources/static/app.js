@@ -33,10 +33,6 @@ function removeInstance() {
 }
 
 
-
-
-
-
 $(function () {
     $("form").on('submit', function (e) {
         console.log(e);

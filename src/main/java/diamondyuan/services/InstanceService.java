@@ -22,19 +22,17 @@ public interface InstanceService {
 
   /**
    * 创建实例
-   *
    */
-  void createInstance() throws ClientException,IOException;
+  void createInstance() throws ClientException, IOException;
 
   /**
    * 释放实例
-   *
    */
-  void releaseInstance() throws ClientException,IOException;
+  void releaseInstance() throws ClientException, IOException;
 
   void attachKeyPair(String instanceID) throws ClientException, IOException;
 
-  List<Instance> getInstances() throws ClientException,IOException;
+  List<Instance> getInstances() throws ClientException, IOException;
 
 
   List<Zone> getZones(String regionId) throws ClientException;
