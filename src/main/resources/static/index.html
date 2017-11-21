@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fast Airport Dashboard</title>
+    <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/main.css" rel="stylesheet">
+    <script src="/webjars/jquery/jquery.min.js"></script>
+    <script src="/js/utils.js"></script>
+    <script src="/app.js"></script>
+    <script src="/load.js"></script>
+</head>
+<body>
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="/">FastAirport</a>
+        </div>
+        <div>
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="/">主页</a></li>
+                <li><a href="/config">配置</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div id="main-content" class="container">
+
+
+    <div class="row">
+        <div class="col-md-4">
+            <form class="form-inline">
+                <div class="form-group">
+                    <button id="getInstances" class="btn btn-default" type="submit">服务器列表</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <form class="form-inline">
+                <div class="form-group">
+                    <button id="createInstance" class="btn btn-default" type="submit">购买服务器</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <form class="form-inline">
+                <div class="form-group">
+                    <button id="removeInstance" class="btn btn-default" type="submit">释放服务器</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel-body">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>服务器ID</th>
+                        <th>服务器状态</th>
+                        <th>服务器IP</th>
+                        <th>所在区域</th>
+                        <th>密钥名字</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody id="instanceTable"></tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>
