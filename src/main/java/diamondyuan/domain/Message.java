@@ -1,4 +1,4 @@
-package diamondyuan.api;
+package diamondyuan.domain;
 
 import lombok.Data;
 

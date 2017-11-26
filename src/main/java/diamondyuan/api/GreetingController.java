@@ -2,6 +2,7 @@ package diamondyuan.api;
 
 import diamondyuan.domain.Config;
 import diamondyuan.domain.Instance;
+import diamondyuan.domain.Message;
 import diamondyuan.domain.WebSession;
 import diamondyuan.services.ConfigService;
 import diamondyuan.services.DiamondUtils;

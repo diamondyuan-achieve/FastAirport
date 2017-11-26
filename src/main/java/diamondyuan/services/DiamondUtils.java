@@ -1,7 +1,7 @@
 package diamondyuan.services;
 
 import com.jcraft.jsch.*;
-import diamondyuan.api.Message;
+import diamondyuan.domain.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
